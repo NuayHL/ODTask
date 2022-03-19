@@ -1,4 +1,3 @@
-import torchvision.models
 import torch.nn as nn
 
 from common import conv_batch
@@ -31,6 +30,7 @@ class Darknet53(nn.Module):
         x = self.residual_block3(self.conv4(x))
         x = self.residual_block4(self.conv5(x))
         x = self.residual_block5(self.conv6(x))
+        x = self.avg_pooling(x)
         x = x.view(-1, 1024)
         x = self.fc(x)
         return x
