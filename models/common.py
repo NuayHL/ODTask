@@ -1,10 +1,39 @@
 import torch.nn as nn
 
-class Conv(nn.Module):
-    def __init__(self):
-        self.conv = nn.Conv2d(3, 16, 3, 1, 1)
-        self.bn = nn.BatchNorm2d()
-        self.act = nn.LeakyReLU()
+'''
+ic: in channels
+oc: out channels
+kn: kernel size
+st: stride
+pd: padding
+'''
+
+def conv_batch(ic, oc, kernel_size=3, stride=1, padding=1):
+    return nn.Sequential(
+        nn.Conv2d(ic, oc, kernel_size, stride, padding, bias=False),
+        nn.BatchNorm2d(oc),
+        nn.LeakyReLU())
+
+def make_layers(num, block, *args, **kwargs):
+    layers = []
+    for i in range(num):
+        layers.append(block(*args, **kwargs))
+    return nn.Sequential(*layers)
+
+class DarkResidualBlock(nn.Module):
+    def __init__(self, ic):
+        super(DarkResidualBlock, self).__init__()
+        reduced_channels = int(ic/2)
+        self.conv1 = conv_batch(ic, reduced_channels, kernel_size=1, padding=0)
+        self.conv2 = conv_batch(reduced_channels, ic, kernel_size=3, padding=1)
 
     def forward(self,x):
-        return self.act(self.bn(self.conv(x)))
+        residual = x
+        x = self.conv2(self.conv1(x))
+        return x+residual
+
+
+
+
+
+

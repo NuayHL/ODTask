@@ -8,6 +8,7 @@ class Results():
             'Invalid results format. results format should be: [[x,y,w,h,confidence,class],]'
         self.results = results
 
+
 def average_precision():
     pass
 
