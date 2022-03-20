@@ -1,8 +1,8 @@
 import torch.nn as nn
 
-from common import conv_batch
-from common import DarkResidualBlock
-from common import make_layers
+from .common import conv_batch
+from .common import DarkResidualBlock
+from .common import make_layers
 
 class Darknet53(nn.Module):
     def __init__(self, numofclasses, res_block=DarkResidualBlock):
@@ -35,9 +35,15 @@ class Darknet53(nn.Module):
         x = self.fc(x)
         return x
 
-    def extract(self):
+    def yolo_extract(self,x):
         '''
-        feed data in appropriate format to the detector
+        return w*w*256 (w/2)*(w/2)*512 (w/4)*(w/4)*1024
         '''
-        pass
+        x = self.conv1(x)
+        x = self.residual_block1(self.conv2(x))
+        x = self.residual_block2(self.conv3(x))
+        f1 = self.residual_block3(self.conv4(x))  #256
+        f2 = self.residual_block4(self.conv5(f1)) #512
+        f3 = self.residual_block5(self.conv6(f2)) #1024
+        return f3, f2, f1
 

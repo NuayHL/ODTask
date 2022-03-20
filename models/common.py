@@ -9,12 +9,23 @@ pd: padding
 '''
 
 def conv_batch(ic, oc, kernel_size=3, stride=1, padding=1):
+    '''
+    Caution: the conv layer does not contain bais.
+    :return: nn.Sequential (conv, bn, activateFunction)
+    '''
     return nn.Sequential(
         nn.Conv2d(ic, oc, kernel_size, stride, padding, bias=False),
         nn.BatchNorm2d(oc),
         nn.LeakyReLU())
 
 def make_layers(num, block, *args, **kwargs):
+    '''
+    :param num: the number of the blocks
+    :param block: nn.Module, the type of the block
+    :param args: refer to the block
+    :param kwargs: refer to the block
+    :return: nn.Sequential
+    '''
     layers = []
     for i in range(num):
         layers.append(block(*args, **kwargs))

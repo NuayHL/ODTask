@@ -10,3 +10,6 @@ Some fundamental blocks needs to be carefully built
 The darknet53 was built using torch, but it needs to be further test. The next step is building the YOLOv3
 
 Finnally the project is starting to moving...
+### 20th Mar.
+The darknet53 works well. Today's work is to combine the backbone and the detector.
+
