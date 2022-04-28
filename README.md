@@ -24,3 +24,10 @@ I need to prepare for the presentation next week. Only then I will continue the 
 Two things need to be settled:
 1. label assignment module
 2. data processing pipeline
+
+### 28rd Apr.
+Things becomes urgent.
+
+Maybe today can finish a primitive datatrans function.
+
+COCOapi, COCOdataset format
