@@ -31,3 +31,10 @@ Things becomes urgent.
 Maybe today can finish a primitive datatrans function.
 
 COCOapi, COCOdataset format
+
+拉倒吧，还是用中文纪录一下。今天把coco数据集的格式搞明白了，并且完成了odgt到coco类型annotation的转化。
+
+明天要干三件事情
+1. 用cv2写一个可视化，能显示gt的bbox
+2. 完成crowdhuman的pytorch dataset构建
+3. 新建一个文档用于纪录我的开发细节（其实是怕忘记
