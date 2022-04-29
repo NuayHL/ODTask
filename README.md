@@ -39,7 +39,12 @@ COCOapi, COCOdataset format
 ### 29rd Apr.
 新建了一个MyTutorial存放我的一些开发经过，随项目上传github。
 
+关于就是dataset的输出是否需要转化为tensor，目前是np.ndarray的样式，且img不是model的输入样式。
+
+今天的进度完成。
+
 yolo是有检测头的，明天先完成对yolo的注释，然后开始Result class的设计，这一部分参考下其他项目的
-代码。然后在此基础上完成Label Assign的模块。之后还有Loss的编写，然后应该就可以开始训练了。
+代码。然后在此基础上完成Label Assign的模块。之后还有Loss的编写，然后应该就可以开始训练了。哦对了
+还有nms的问题。
 
 估计还要一个星期的时间。

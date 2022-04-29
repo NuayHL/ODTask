@@ -4,6 +4,14 @@ def _isArrayLike(obj):
     return hasattr(obj, '__iter__') and hasattr(obj, '__len__')
 
 def show_bbox(img, bboxs=[], type="default",color=[0,0,255],**kwargs):
+    '''
+    :param img: str for file path/np.ndarray (w,h,c)
+    :param bboxs: one or list
+    :param type: bbox format
+    :param color: red
+    :param kwargs: related to cv2.rectangle
+    :return:
+    '''
     assert type in ["default","diagonal","crowdhuman"],"the bbox format should be \'default\' or \'diagonal\' or \'crowdhuman\'"
     if isinstance(img, str): img = cv2.imread(img)
     bboxs = bboxs if _isArrayLike(bboxs) else [bboxs]
