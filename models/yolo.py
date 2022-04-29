@@ -38,6 +38,10 @@ class YOLOv3(nn.Module):
             conv_batch(channel * 2, channel, kernel_size=1, padding=0))
 
     def forward(self,x):
+        '''
+        :param x: BxCxWxH tensor
+        :return:
+        '''
         f1, f2, f3 = self.extractor(self.backbone, x)
         f1 = self.yolodetector1(f1)  #large grid
         f1_up = interpolate(self.conv1to2(f1), scale_factor=(2,2))
