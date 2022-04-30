@@ -12,6 +12,7 @@ def conv_batch(ic, oc, kernel_size=3, stride=1, padding=1):
     '''
     Caution: the conv layer does not contain bais.
     :return: nn.Sequential (conv, bn, activateFunction)
+    the feature size doesn't change if use default par
     '''
     return nn.Sequential(
         nn.Conv2d(ic, oc, kernel_size, stride, padding, bias=False),
@@ -32,6 +33,10 @@ def make_layers(num, block, *args, **kwargs):
     return nn.Sequential(*layers)
 
 class DarkResidualBlock(nn.Module):
+    '''
+    ic: in channel
+    feature size remain the same
+    '''
     def __init__(self, ic):
         super(DarkResidualBlock, self).__init__()
         reduced_channels = int(ic/2)

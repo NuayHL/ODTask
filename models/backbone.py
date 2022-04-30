@@ -25,11 +25,17 @@ class Darknet53(nn.Module):
 
     def forward(self,x):
         x = self.conv1(x)
+        # w 32
         x = self.residual_block1(self.conv2(x))
+        # w/2 64
         x = self.residual_block2(self.conv3(x))
+        # w/4 128
         x = self.residual_block3(self.conv4(x))
+        # w/8 256
         x = self.residual_block4(self.conv5(x))
+        # w/16 512
         x = self.residual_block5(self.conv6(x))
+        # w/32 1024
         x = self.avg_pooling(x)
         x = x.view(-1, 1024)
         x = self.fc(x)
@@ -37,6 +43,7 @@ class Darknet53(nn.Module):
 
     def yolo_extract(self,x):
         '''
+        w = w/8
         return w*w*256 (w/2)*(w/2)*512 (w/4)*(w/4)*1024
         '''
         x = self.conv1(x)

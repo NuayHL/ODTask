@@ -55,5 +55,8 @@ cv2.imread()  #format: np.ndarray <w,h,c>
 
 ## COCOapi
 
+## Torch 
+### Sequence
+
 
 
