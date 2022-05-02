@@ -62,3 +62,10 @@ yolo是有检测头的，明天先完成对yolo的注释，然后开始Result cl
 Ubuntu的环境终于配置好了。太稳定了。
 
 开始写iou
+
+### 2nd May.
+欲速则不达。在编写label assignment和iou的时候在代码上如何实现还是个问题。
+
+要保证模型速度和torch的bp。这几天先看看torch中loss这个类。
+
+今天主要是发现了这个问题，先看了一下FCOS中的assign是怎么写的。

@@ -7,3 +7,9 @@
 - 是win10阻止了虚拟环境的激活脚本运行。使用powershell打开到虚拟环境的Scripts目录下运行指令 “set-ExecutionPolicy RemoteSigned”
 
 ## CUDA
+
+## Ubuntu
+1. conda
+2. git | "ssh-keygen -o"
+3. pycharm | tool-create xxx | proxy settings | git settings
+4. gcc
