@@ -1,8 +1,36 @@
 #this .py is for Iou related algorithms
 
 import torch
+import torch.nn as nn
+
+nn.Sigmoid()
 
 ZEROTENSOR = torch.Tensor([0]).cuda()
+
+class Iouloss(nn.Module):
+    def __init__(self, ioutype="iou"):
+        super(Iouloss, self).__init__()
+        self.ioutype = ioutype
+
+    def forward(self,dt,gt):
+        dt_x1 = dt[:, 0]
+        dt_y1 = dt[:, 1]
+        dt_x2 = dt[:, 2]
+        dt_y2 = dt[:, 3]
+
+        gt_x1 = gt[:, 0]
+        gt_y1 = gt[:, 1]
+        gt_x2 = gt[:, 2]
+        gt_y2 = gt[:, 3]
+
+        x_min = torch.max(dt_x1, gt_x1)
+        x_max = torch.min(dt_x2, gt_x2)
+        y_min = torch.max(dt_y1, gt_y1)
+        y_max = torch.max(dt_y2, gt_y2)
+
+        w_int = x_max - x_min
+        h_int = y_max - y_min
+
 
 class Iou():
     def __init__(self, ioutype="iou", ip1type="default", ip2type="default"):

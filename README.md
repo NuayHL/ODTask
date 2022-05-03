@@ -69,3 +69,5 @@ Ubuntu的环境终于配置好了。太稳定了。
 要保证模型速度和torch的bp。这几天先看看torch中loss这个类。
 
 今天主要是发现了这个问题，先看了一下FCOS中的assign是怎么写的。
+
+### 3rd May.
