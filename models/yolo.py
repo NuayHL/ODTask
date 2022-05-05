@@ -7,9 +7,9 @@ from torch.nn.functional import interpolate
 from .backbone import Darknet53
 from .common import conv_batch
 
-class YOLOv3(nn.Module):
+class Yolov3_core(nn.Module):
     def __init__(self, numofclasses=2, backbone=Darknet53):
-        super(YOLOv3, self).__init__()
+        super(Yolov3_core, self).__init__()
         self.backbone = backbone(numofclasses)
         self.extractor = backbone.yolo_extract
         self.yolodetector1 = self.yolo_block(512)
@@ -51,9 +51,9 @@ class YOLOv3(nn.Module):
         f3 = torch.cat((f3,f2_up),1)
         f3 = self.yolodetector3(f3)  # small grid
 
-        f1 = self.to_featuremap1(f1)
-        f2 = self.to_featuremap2(f2)
-        f3 = self.to_featuremap3(f3)
+        f1 = self.to_featuremap1(f1) # W/32 1024
+        f2 = self.to_featuremap2(f2) # W/16 512
+        f3 = self.to_featuremap3(f3) # W/8  256
 
         return f1, f2, f3
 
