@@ -6,6 +6,23 @@ from torch.nn.functional import interpolate
 
 from .backbone import Darknet53
 from .common import conv_batch
+from ..training.loss import Defaultloss
+
+class YOLOv3(nn.Module):
+    def __init__(self,numofclasees=2,ioutype="iou",loss=Defaultloss,istrainig=False):
+        super(YOLOv3, self).__init__()
+        self.core = Yolov3_core(numofclasees)
+        self.loss = loss
+        self.istraining = istrainig
+    def forward(self,x):
+        if not self.istraining:
+            return self.inference(self.core(x))
+
+        else:
+            pass
+
+    def inference(self,x):
+        pass
 
 class Yolov3_core(nn.Module):
     def __init__(self, numofclasses=2, backbone=Darknet53):
