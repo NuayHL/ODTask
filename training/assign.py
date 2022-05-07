@@ -4,6 +4,7 @@ from .iou import IOU
 class Assign():
     def __init__(self,anchs,assignType="default",ioutype="iou"):
         self.anchs = anchs
+        self.lenAnchs = len(anchs)
         self.assignType = assignType
         self.iou = IOU(ioutype=ioutype)
     def assign(self,gt):
@@ -15,6 +16,7 @@ class Assign():
             raise NotImplementedError("Unknown assignType")
 
     def _retinaAssign(self,gt):
+        lenGt = len(gt)
         
 
     def _fcosAssign(self,gt):
