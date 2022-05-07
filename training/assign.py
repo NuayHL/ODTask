@@ -15,7 +15,7 @@ class Assign():
             raise NotImplementedError("Unknown assignType")
 
     def _retinaAssign(self,gt):
-        pass
+        
 
     def _fcosAssign(self,gt):
         pass

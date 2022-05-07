@@ -11,9 +11,10 @@ class IOU(nn.Module):
 
     def forward(self,dt,gt):
         '''
+        WARNING: the input must be bboxs, i.e. len(dt.shape)==2
         :param dt: detect bboxes
         :param gt: gt bboxes
-        :return:
+        :return: ious
         '''
         dt_x1 = dt[:, 0]
         dt_y1 = dt[:, 1]
