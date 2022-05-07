@@ -3,12 +3,18 @@
 import torch
 import torch.nn as nn
 
-class Iouloss(nn.Module):
-    def __init__(self, ioutype="iou"):
-        super(Iouloss, self).__init__()
+class IOU(nn.Module):
+    def __init__(self,bboxtype="default",ioutype="iou"):
+        super(IOU, self).__init__()
         self.ioutype = ioutype
+        self.bboxtype = bboxtype
 
     def forward(self,dt,gt):
+        '''
+        :param dt: detect bboxes
+        :param gt: gt bboxes
+        :return:
+        '''
         dt_x1 = dt[:, 0]
         dt_y1 = dt[:, 1]
         dt_x2 = dt[:, 2]
@@ -28,7 +34,7 @@ class Iouloss(nn.Module):
         h_int = torch.clamp(y_max - y_min,0)
 
         join = w_int*h_int
-        union = (dt_x2-dt_x1)*(dt_y2-dt_y1)+(gt_x2-gt_x1)*(gt_y2-gt_y1)-join
+        union = (dt_x2-dt_x1)*(dt_y2-dt_y1)+(gt_x2-gt_x1)*(gt_y2-gt_y1)-join+1e-7
 
         return join/union
 
@@ -64,8 +70,3 @@ class Iou():
         elif self.ioutype == "giou":
             return self.giou
 
-class Assign():
-    def __init__(self):
-        pass
-    def _retinaAssign(self,dt,gt):
-        pass

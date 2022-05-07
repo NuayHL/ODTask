@@ -8,6 +8,12 @@ json.dumps()
 ```
 其中以s结尾的是对str字符串进行转换或者输出的函数，其余是对文件进行操作的。
 
+## Yaml
+```
+yaml.safe_load(file)
+yaml.dump(content,file)
+```
+
 ## print相关 
 ### 格式化输出
 在print中，格式符为真实值预留位置，并控制显示的格式。
@@ -53,9 +59,10 @@ print("%6.3f" % 2.3)
 cv2.imread()  #format: np.ndarray <w,h,c>
 ```
 
+
 ## COCOapi
 
-## Torch 
+
 ### Sequence
 
 
