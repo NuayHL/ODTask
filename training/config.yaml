@@ -1,4 +1,4 @@
-anchors:
-  -[]
-  -[]
-  -[]
+assign_cfg:
+ assignType: default
+ ioutype: iou
+ threshold: 0.5
