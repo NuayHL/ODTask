@@ -11,5 +11,6 @@ class Config():
     def __call__(self):
         return self.cfg
 
+
 config = Config("config.yaml")
 cfg = config()

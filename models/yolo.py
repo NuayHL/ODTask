@@ -6,7 +6,7 @@ from torch.nn.functional import interpolate
 
 from .backbone import Darknet53
 from .common import conv_batch
-from ..training.loss import Defaultloss
+from training.loss import Defaultloss
 
 class YOLOv3(nn.Module):
     def __init__(self,numofclasees=2,ioutype="iou",loss=Defaultloss,istrainig=False):

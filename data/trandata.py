@@ -94,8 +94,8 @@ class CrowdHDataset(Dataset):
     def loadImg(self,idx):
         img = self.annotations.loadImgs(idx)
         img = cv2.imread(self.imgPath+img[0]["file_name"]+".jpg")
-        # img = np.transpose(img,(2,0,1))
-        # img = torch.from_numpy(img)
+        #img = np.transpose(img,(2,0,1))
+        #img = torch.from_numpy(img)
         return img
 
     def loadAnno(self,idx):

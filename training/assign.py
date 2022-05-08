@@ -7,13 +7,17 @@ class Assign():
         if isinstance(_cfg, str):
             from .config import Config
             _cfg = Config(_cfg)
-            _cfg = _cfg()
-        self.anchs = anchs
+        self.anchs = _cfg.anchs
         self.lenAnchs = len(anchs)
-        self.assignType = assignType
+        self.assignType = _cfg.assignType
         self.iou = IOU(ioutype=ioutype)
         self.threshold_iou = 0.5
     def assign(self,gt):
+        '''
+        :param gt:
+        :return:the same sture of self.anchs, but filled
+                with bool value
+        '''
         if self.assignType == "default":
             return self._retinaAssign(gt)
         elif self.assignType == "FCOS":
@@ -23,7 +27,7 @@ class Assign():
 
     def _retinaAssign(self,gt):
         self.lenGt = len(gt)
-
+        
         
 
     def _fcosAssign(self,gt):
