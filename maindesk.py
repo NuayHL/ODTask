@@ -1,4 +1,5 @@
 #各种各样的测试都在这里
+import cv2
 
 from util.visualization import show_bbox
 from data.trandata import CrowdHDataset
@@ -13,7 +14,10 @@ model = Yolov3_core().to("cuda")
 dataset = CrowdHDataset("CrowdHuman/annotation_train_coco_style.json")
 mix = dataset[ID]
 img = mix["img"]
+cv2.imshow(" ",img)
+cv2.waitKey()
 img = np.transpose(img,(2,0,1)).astype(np.float32)
+print(img.shape)
 img = torch.from_numpy(img)
 input = torch.unsqueeze(img,0).to("cuda")
 print(input.shape)

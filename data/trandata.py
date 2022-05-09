@@ -5,6 +5,7 @@ import torch
 from pycocotools.coco import COCO
 from util import progressbar
 from torch.utils.data import Dataset
+from training.config import cfg
 
 def odgt2coco(filepath, outputname, type):
     '''
@@ -91,14 +92,32 @@ class CrowdHDataset(Dataset):
     def __getitem__(self, idx):
         return {"img":self.loadImg(idx), "anns":self.loadAnno(idx)}
 
+    def __getitem__(self, idx):
+        img = self.annotations.loadImgs(idx)
+        img = cv2.imread(self.imgPath + img[0]["file_name"] + ".jpg")
+        fx = cfg.input_height/img[0]["height"]
+        fy = cfg.input_width/img[0]["width"]
+        img = cv2.resize(img, (cfg.input_height, cfg.input_width))
+
+        ann = self.annotations.getAnnIds(idx)
+        ann = self.annotations.loadAnns(ann)
+        ann = [ann[i][self.bbox_type] for i in range(len(ann))]
+
+        return {"img":img, "anns":ann}
+
+    def _resizeGt(self):
+        pass
+
     def loadImg(self,idx):
         img = self.annotations.loadImgs(idx)
         img = cv2.imread(self.imgPath+img[0]["file_name"]+".jpg")
+        img = cv2.resize(img,(cfg.input_height,cfg.input_width))
         #img = np.transpose(img,(2,0,1))
         #img = torch.from_numpy(img)
         return img
 
     def loadAnno(self,idx):
+
         ann = self.annotations.getAnnIds(idx)
         ann = self.annotations.loadAnns(ann)
         ann = [ann[i][self.bbox_type] for i in range(len(ann))]

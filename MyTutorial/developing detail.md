@@ -52,6 +52,16 @@ print("%6.3f" % 2.3)
 ```
 cv2.imread()  #format: np.ndarray <w,h,c>
 ```
+```
+dst = cv2.resize(src,dsize,dst=None,fx=None,fy=None,interpolation=None)
+```
+- src：输入图像
+- dsize：输出图像的大小。如果该参数为 0，表示缩放之后的大小需要通过公式计算，dsize = Size(round(fx*src.cols),round(fy*src.rows))。其中 fx 与 fy 是图像 Width 方向和 Height 方向的缩放比例。
+- fx：Width 方向的缩放比例，如果是 0，按照 dsize * width/src.cols 计算
+- fy：Height 方向的缩放比例，如果是 0，按照 dsize * height/src.rows 计算
+- interpolation：插值算法类型，或者叫做插值方式，默认为双线性插值
+- 方法返回结果 dst 表示输出图像。
+
 
 ## COCOapi
 
