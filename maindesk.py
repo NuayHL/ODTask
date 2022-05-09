@@ -7,7 +7,6 @@ from torch.utils.data import DataLoader
 import numpy as np
 import torch
 from models.yolo import Yolov3_core
-import models.anchors as anch
 
 ID = 131
 

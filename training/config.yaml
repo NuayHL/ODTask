@@ -2,8 +2,13 @@ input:
  width: 800
  height: 1024
  bboxtype: fbox
+ batchSize: 8
 
 assign_cfg:
  assignType: default
  ioutype: iou
  threshold: 0.5
+
+anchors:
+ ratios : [3,5]
+ scales : [0.75,1]
