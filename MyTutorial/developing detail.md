@@ -65,8 +65,13 @@ dst = cv2.resize(src,dsize,dst=None,fx=None,fy=None,interpolation=None)
 
 ## COCOapi
 
-## Torch 
-### Sequence
+## Numpy
+```
+np.repeat()
+np.tile()
+
+```
+
 
 
 

@@ -61,10 +61,10 @@ class Yolov3_core(nn.Module):
         '''
         f1, f2, f3 = self.extractor(self.backbone, x)
         f1 = self.yolodetector1(f1)  #large grid
-        f1_up = interpolate(self.conv1to2(f1), scale_factor=(2,2))
+        f1_up = interpolate(self.conv1to2(f1), size=(f2.shape[2],f2.shape[3]))
         f2 = torch.cat((f2,f1_up),1)
         f2 = self.yolodetector2(f2)  # middle grid
-        f2_up = interpolate(self.conv2to3(f2), scale_factor=(2,2))
+        f2_up = interpolate(self.conv2to3(f2), size=(f3.shape[2],f3.shape[3]))
         f3 = torch.cat((f3,f2_up),1)
         f3 = self.yolodetector3(f3)  # small grid
 

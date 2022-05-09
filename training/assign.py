@@ -2,7 +2,7 @@
 from .iou import IOU
 from .config import cfg
 
-class Assign():
+class AnchAssign():
     def __init__(self, _cfg = cfg):
         if isinstance(_cfg, str):
             from .config import Config
@@ -20,8 +20,8 @@ class Assign():
         '''
         if self.assignType == "default":
             return self._retinaAssign(gt)
-        elif self.assignType == "FCOS":
-            return self._focsAssign(gt)
+        elif self.assignType == "ATSS":
+            return self._ATSS(gt)
         else:
             raise NotImplementedError("Unknown assignType")
 
@@ -30,5 +30,5 @@ class Assign():
         
         
 
-    def _fcosAssign(self,gt):
+    def _ATSS(self,gt):
         pass

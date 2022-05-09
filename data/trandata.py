@@ -1,11 +1,11 @@
 import json
 import cv2
-import numpy as np
-import torch
 from pycocotools.coco import COCO
 from util import progressbar
 from torch.utils.data import Dataset
 from training.config import cfg
+
+# need to add logging module to print which kind input is used
 
 def odgt2coco(filepath, outputname, type):
     '''
@@ -78,7 +78,7 @@ def odgt2coco(filepath, outputname, type):
     json.dump(output, open("../CrowdHuman/"+outputname+".json",'w'))
 
 class CrowdHDataset(Dataset):
-    def __init__(self,annotationPath, type="train",bbox_type="bbox"):
+    def __init__(self,annotationPath, type="train",bbox_type=cfg.input_bboxtype):
         super(CrowdHDataset, self).__init__()
         self.jsonPath = annotationPath
         self.imgPath = "CrowdHuman/Images_"+type+"/"
@@ -90,39 +90,27 @@ class CrowdHDataset(Dataset):
         return len(self.annotations.imgs)
 
     def __getitem__(self, idx):
-        return {"img":self.loadImg(idx), "anns":self.loadAnno(idx)}
-
-    def __getitem__(self, idx):
         img = self.annotations.loadImgs(idx)
+        fx = cfg.input_height/float(img[0]["height"])
+        fy = cfg.input_width/float(img[0]["width"])
         img = cv2.imread(self.imgPath + img[0]["file_name"] + ".jpg")
-        fx = cfg.input_height/img[0]["height"]
-        fy = cfg.input_width/img[0]["width"]
         img = cv2.resize(img, (cfg.input_height, cfg.input_width))
 
-        ann = self.annotations.getAnnIds(idx)
-        ann = self.annotations.loadAnns(ann)
-        ann = [ann[i][self.bbox_type] for i in range(len(ann))]
+        anns = self.annotations.getAnnIds(idx)
+        anns = self.annotations.loadAnns(anns)
+        finanns = []
+        for ann in anns:
+            if self.bbox_type not in ann.keys(): continue
+            finanns.append(self._resizeGt(ann[self.bbox_type],fx,fy))
+        return {"img":img, "anns":finanns}
 
-        return {"img":img, "anns":ann}
-
-    def _resizeGt(self):
-        pass
-
-    def loadImg(self,idx):
-        img = self.annotations.loadImgs(idx)
-        img = cv2.imread(self.imgPath+img[0]["file_name"]+".jpg")
-        img = cv2.resize(img,(cfg.input_height,cfg.input_width))
-        #img = np.transpose(img,(2,0,1))
-        #img = torch.from_numpy(img)
-        return img
-
-    def loadAnno(self,idx):
-
-        ann = self.annotations.getAnnIds(idx)
-        ann = self.annotations.loadAnns(ann)
-        ann = [ann[i][self.bbox_type] for i in range(len(ann))]
-        # ann = torch.from_numpy(ann)
-        return ann
+    def _resizeGt(self,bbox,fx,fy):
+        # resize the gt bbox according to the img resize
+        bbox[0] *= fx
+        bbox[2] *= fx
+        bbox[1] *= fy
+        bbox[3] *= fy
+        return bbox
 
 if __name__ == '__main__':
     odgt2coco("../CrowdHuman/annotation_val.odgt", "annotation_val_coco_style", "val")

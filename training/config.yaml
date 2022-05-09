@@ -1,6 +1,8 @@
 input:
  width: 800
  height: 1024
+ bboxtype: fbox
+
 assign_cfg:
  assignType: default
  ioutype: iou
