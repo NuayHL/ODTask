@@ -10,7 +10,7 @@ from training.config import cfg
 # need to add logging module to print which kind input is used
 
 preprocess_train = transforms.Compose([
-    transforms
+    transforms.Resize(((cfg.input_height, cfg.input_width)))
 ])
 
 def odgt2coco(filepath, outputname, type):
@@ -101,6 +101,7 @@ class CrowdHDataset(Dataset):
         fx = cfg.input_height/float(img[0]["height"])
         fy = cfg.input_width/float(img[0]["width"])
         img = cv2.imread(self.imgPath + img[0]["file_name"] + ".jpg")
+        img = np.transpose(img,(2,0,1))
         img = cv2.resize(img, (cfg.input_height, cfg.input_width))
 
         anns = self.annotations.getAnnIds(idx)
