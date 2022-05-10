@@ -1,11 +1,11 @@
 input:
  width: 800
  height: 1024
- bboxtype: fbox
+ bboxtype: fbox #bbox(vbox)/hbox/fbox
  batchSize: 8
 
 assign_cfg:
- assignType: default
+ assignType: default #default/ATSS
  ioutype: iou
  threshold: 0.5
 

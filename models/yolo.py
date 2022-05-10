@@ -7,6 +7,9 @@ from torch.nn.functional import interpolate
 from .backbone import Darknet53
 from .common import conv_batch
 from training.loss import Defaultloss
+from training.config import cfg
+
+anchors_per_grid = len(cfg.anchorRatio)*len(cfg.anchorScales)
 
 class YOLOv3(nn.Module):
     def __init__(self,numofclasees=2,ioutype="iou",loss=Defaultloss,istrainig=False):
@@ -32,15 +35,15 @@ class Yolov3_core(nn.Module):
         self.yolodetector1 = self.yolo_block(512)
         self.to_featuremap1 = nn.Sequential(
             conv_batch(512, 1024),
-            conv_batch(1024, (1+4+numofclasses)*3, kernel_size=1, padding=0))
+            conv_batch(1024, (1 + 4 + numofclasses) * anchors_per_grid, kernel_size=1, padding=0))
         self.yolodetector2 = self.yolo_block(256,768)
         self.to_featuremap2 = nn.Sequential(
             conv_batch(256, 512),
-            conv_batch(512, (1 + 4 + numofclasses) * 3, kernel_size=1, padding=0))
+            conv_batch(512, (1 + 4 + numofclasses) * anchors_per_grid, kernel_size=1, padding=0))
         self.yolodetector3 = self.yolo_block(128,384)
         self.to_featuremap3 = nn.Sequential(
             conv_batch(128, 256),
-            conv_batch(256, (1 + 4 + numofclasses) * 3, kernel_size=1, padding=0))
+            conv_batch(256, (1 + 4 + numofclasses) * anchors_per_grid, kernel_size=1, padding=0))
         self.conv1to2 = conv_batch(512, 256, kernel_size=1, padding=0)
         self.conv2to3 = conv_batch(256, 128, kernel_size=1, padding=0)
 

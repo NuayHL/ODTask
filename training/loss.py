@@ -1,9 +1,8 @@
 import torch
 import torch.nn as nn
+from training.config import cfg
 
 class Defaultloss(nn.Module):
-    def __init__(self):
+    def forward(self,dt,an,gt):
         pass
 
-    def forward(self,dt,gt):
-        pass

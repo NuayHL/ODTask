@@ -12,7 +12,7 @@ class IOU(nn.Module):
     def forward(self,dt,gt):
         '''
         WARNING: the input must be bboxs, i.e. len(dt.shape)==2
-        :param dt: detect bboxes
+        :param dt: detect bboxes or anchor bboxes
         :param gt: gt bboxes
         :return: ious
         '''

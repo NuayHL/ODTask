@@ -1,17 +1,21 @@
 # this .py is for the assignment methods
+import torch
+
 from .iou import IOU
 from .config import cfg
+from models.anchor import generateAnchors
 
 class AnchAssign():
-    def __init__(self, _cfg = cfg):
+    def __init__(self, anchors=generateAnchors(), _cfg = cfg):
         if isinstance(_cfg, str):
             from .config import Config
             _cfg = Config(_cfg)
-        self.anchs = _cfg.anchs
-        self.lenAnchs = len(anchs)
+        self.cfg = _cfg
+        self.anchs = anchors
+        self.anchs_len = anchors.shape[1]
         self.assignType = _cfg.assignType
-        self.iou = IOU(ioutype=ioutype)
-        self.threshold_iou = 0.5
+        self.iou = IOU(ioutype=_cfg.iouType)
+        self.threshold_iou = _cfg.threshold
     def assign(self,gt):
         '''
         :param gt:
@@ -26,8 +30,12 @@ class AnchAssign():
             raise NotImplementedError("Unknown assignType")
 
     def _retinaAssign(self,gt):
-        self.lenGt = len(gt)
-        
+        output_size = self.anchs.shape
+        output_size[-1] = 1
+        assign = torch.zeros(tuple(output_size))
+        for ib in range(self.cfg.batch_size):
+            gti = gt[ib]
+
         
 
     def _ATSS(self,gt):

@@ -1,5 +1,6 @@
 import json
 import cv2
+import numpy as np
 from pycocotools.coco import COCO
 from util import progressbar
 from torch.utils.data import Dataset
@@ -90,6 +91,7 @@ class CrowdHDataset(Dataset):
         return len(self.annotations.imgs)
 
     def __getitem__(self, idx):
+        idx += 1
         img = self.annotations.loadImgs(idx)
         fx = cfg.input_height/float(img[0]["height"])
         fy = cfg.input_width/float(img[0]["width"])
@@ -102,6 +104,8 @@ class CrowdHDataset(Dataset):
         for ann in anns:
             if self.bbox_type not in ann.keys(): continue
             finanns.append(self._resizeGt(ann[self.bbox_type],fx,fy))
+        finanns = np.array(finanns).astype(np.int_)
+        print(finanns.shape)
         return {"img":img, "anns":finanns}
 
     def _resizeGt(self,bbox,fx,fy):
