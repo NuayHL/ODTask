@@ -4,9 +4,14 @@ import numpy as np
 from pycocotools.coco import COCO
 from util import progressbar
 from torch.utils.data import Dataset
+from torchvision import transforms
 from training.config import cfg
 
 # need to add logging module to print which kind input is used
+
+preprocess_train = transforms.Compose([
+    transforms
+])
 
 def odgt2coco(filepath, outputname, type):
     '''
