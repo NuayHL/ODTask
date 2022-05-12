@@ -14,16 +14,16 @@ from training.assign import AnchAssign
 
 ID = 131
 
-assign = AnchAssign()
+assign_fun = AnchAssign()
 
 model = Yolov3_core().to("cuda")
 dataset = CrowdHDataset("CrowdHuman/annotation_train_coco_style.json")
 loader = DataLoader(dataset, batch_size=8,collate_fn=OD_default_collater)
 for i in loader:
-
+    result = assign_fun.assign(i["anns"])
     break
 
-
+print(torch.where(result>1))
 
 
 

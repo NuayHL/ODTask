@@ -37,7 +37,9 @@ class IOU(nn.Module):
         join = w_int*h_int
         union = (dt_x2-dt_x1)*(dt_y2-dt_y1)+(gt_x2-gt_x1)*(gt_y2-gt_y1)-join+1e-7
 
-        return join/union
+        result = torch.abs(join/union)
+
+        return result
 
 class Iou():
     def __init__(self, ioutype="iou", ip1type="default", ip2type="default"):
