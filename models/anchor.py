@@ -42,6 +42,13 @@ def generateAnchors(fpnlevels=None, basesize=None, ratios=None, scales=None, sin
 
     return allAnchors
 
+def filterAnchors(anchors_arranged_arrays, feature_level=None, row=None, col=None, ratio=None, scale=None):
+    '''
+    return designate anchor result
+    :return:
+    '''
+    pass
+
 
 
 

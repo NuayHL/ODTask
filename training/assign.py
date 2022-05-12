@@ -49,17 +49,20 @@ class AnchAssign():
             else:
                 imgAnn = torch.from_numpy(imgAnn).double()
 
-            pair_ann = torch.repeat_interleave(singleAch, lenth_gt,dim=0)
+            pair_anc = torch.repeat_interleave(singleAch, lenth_gt, dim=0)
             pair_gt = torch.repeat_interleave(imgAnn.unsqueeze(0), self.anchs_len, dim=0)
             pair_gt = torch.flatten(pair_gt,start_dim=0, end_dim=1)
 
-            iou_matrix = self.iou(pair_ann,pair_gt)
+            iou_matrix = self.iou(pair_anc, pair_gt)
             iou_matrix = iou_matrix.reshape((self.anchs_len,lenth_gt))
             look = iou_matrix.cpu().numpy()
             iou_max_value, iou_max_idx = torch.max(iou_matrix, dim=1)
-            iou_max_value = torch.where(iou_max_value >= 0.5, iou_max_value, iou_max_idx.double() + 2.0)
-            iou_max_value = torch.where(iou_max_value < 0.4, iou_max_value, 1.0)
-            iou_max_value = torch.where(iou_max_value < 0.5, iou_max_value, 0.).int()
+            # negative: 0
+            # ignore: -1
+            # positive: index+1
+            iou_max_value = torch.where(iou_max_value >= 0.5, iou_max_idx.double() + 2.0,iou_max_value)
+            iou_max_value = torch.where(iou_max_value < 0.4, 1.0, iou_max_value)
+            iou_max_value = torch.where(iou_max_value < 0.5, 0., iou_max_value)
             assign_result[ib] = iou_max_value-1
 
         return assign_result

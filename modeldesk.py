@@ -4,8 +4,8 @@ os.chdir("../ODTask")
 
 from training.iou import IOU
 import torch
-a = torch.Tensor([[1,1,2,2]]).cuda()
-b = torch.Tensor([[1,1,2,2]]).cuda()
+a = torch.Tensor([[0,4,8,20]]).cuda()
+b = torch.Tensor([[2,2,8,8]]).cuda()
 
 iou = IOU()
 print(iou(a,b))

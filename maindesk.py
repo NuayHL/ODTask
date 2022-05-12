@@ -11,18 +11,20 @@ import numpy as np
 import torch
 from models.yolo import Yolov3_core
 from training.assign import AnchAssign
+from training.config import cfg
 
-ID = 131
+ID = 1
 
-a = np.array([[2,2,8,8],[10,4,15,25]])
-
-annos = [a]
-
+dataset = CrowdHDataset("CrowdHuman/annotation_train_coco_style.json")
+loader = DataLoader(dataset, batch_size=cfg.batch_size, collate_fn=OD_default_collater)
 assign_fun = AnchAssign()
 
-result = assign_fun.assign(annos)
+for batch in loader:
+    result = assign_fun.assign(batch["anns"])
+    break
 
-print(torch.where(result>1))
+print(result)
+print(torch.where(result>=1))
 
 
 

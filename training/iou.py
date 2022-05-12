@@ -29,7 +29,7 @@ class IOU(nn.Module):
         x_min = torch.max(dt_x1, gt_x1)
         x_max = torch.min(dt_x2, gt_x2)
         y_min = torch.max(dt_y1, gt_y1)
-        y_max = torch.max(dt_y2, gt_y2)
+        y_max = torch.min(dt_y2, gt_y2)
 
         w_int = torch.clamp(x_max - x_min,0)
         h_int = torch.clamp(y_max - y_min,0)
@@ -37,7 +37,7 @@ class IOU(nn.Module):
         join = w_int*h_int
         union = (dt_x2-dt_x1)*(dt_y2-dt_y1)+(gt_x2-gt_x1)*(gt_y2-gt_y1)-join+1e-7
 
-        result = torch.abs(join/union)
+        result = join/union
 
         return result
 
