@@ -10,5 +10,5 @@ assign_cfg:
  threshold: 0.5
 
 anchors:
- ratios : [1,2]
+ ratios : [2]
  scales : [0.25]
