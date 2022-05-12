@@ -5,7 +5,7 @@ os.chdir("../ODTask")
 
 import cv2
 from util.visualization import show_bbox
-from data.trandata import CrowdHDataset
+from data.trandata import CrowdHDataset, OD_default_collater
 from torch.utils.data import DataLoader
 import numpy as np
 import torch
@@ -15,10 +15,10 @@ ID = 131
 
 model = Yolov3_core().to("cuda")
 dataset = CrowdHDataset("CrowdHuman/annotation_train_coco_style.json")
-loader = DataLoader(dataset, batch_size=8)
-for idx, dict in loader:
-    print(idx)
-    print(dict)
+loader = DataLoader(dataset, batch_size=8,collate_fn=OD_default_collater)
+for i in loader:
+    print(len(i["imgs"]))
+    print(len(i["anns"]))
     break
 
 

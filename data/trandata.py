@@ -10,7 +10,7 @@ from training.config import cfg
 # need to add logging module to print which kind input is used
 
 preprocess_train = transforms.Compose([
-    transforms.Resize(((cfg.input_height, cfg.input_width)))
+
 ])
 
 def odgt2coco(filepath, outputname, type):
@@ -101,7 +101,6 @@ class CrowdHDataset(Dataset):
         fx = cfg.input_height/float(img[0]["height"])
         fy = cfg.input_width/float(img[0]["width"])
         img = cv2.imread(self.imgPath + img[0]["file_name"] + ".jpg")
-        img = np.transpose(img,(2,0,1))
         img = cv2.resize(img, (cfg.input_height, cfg.input_width))
 
         anns = self.annotations.getAnnIds(idx)
@@ -110,8 +109,6 @@ class CrowdHDataset(Dataset):
         for ann in anns:
             if self.bbox_type not in ann.keys(): continue
             finanns.append(self._resizeGt(ann[self.bbox_type],fx,fy))
-        finanns = np.array(finanns).astype(np.int_)
-        print(finanns.shape)
         return {"img":img, "anns":finanns}
 
     def _resizeGt(self,bbox,fx,fy):
@@ -121,6 +118,19 @@ class CrowdHDataset(Dataset):
         bbox[1] *= fy
         bbox[3] *= fy
         return bbox
+
+def OD_default_collater(data):
+    '''
+    used in torch.utils.data.DataLaoder as collater_fn
+    parse the batch_size data into dict
+    {"imgs":List lenth B, each with np.float32 img
+     "anns":List lenth B, each with np.float32 ann}
+    '''
+    imgs = [np.transpose(preprocess_train(s["img"].astype(np.float32)), (2, 0, 1)) for s in data]
+    annos = [np.array(s["anns"]).astype(np.float32) for s in data]
+
+    return {"imgs":imgs, "anns":annos}
+
 
 if __name__ == '__main__':
     odgt2coco("../CrowdHuman/annotation_val.odgt", "annotation_val_coco_style", "val")
