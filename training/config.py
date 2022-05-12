@@ -20,5 +20,5 @@ class Config():
         self.anchorRatio = self.cfg["anchors"]["ratios"]
         self.anchorScales = self.cfg["anchors"]["scales"]
 
-cfg = Config("training/config.yaml")
+cfg = Config("training/test_config.yaml")
 

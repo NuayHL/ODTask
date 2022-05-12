@@ -14,14 +14,13 @@ from training.assign import AnchAssign
 
 ID = 131
 
+a = np.array([[2,2,8,8],[10,4,15,25]])
+
+annos = [a]
+
 assign_fun = AnchAssign()
 
-model = Yolov3_core().to("cuda")
-dataset = CrowdHDataset("CrowdHuman/annotation_train_coco_style.json")
-loader = DataLoader(dataset, batch_size=8,collate_fn=OD_default_collater)
-for i in loader:
-    result = assign_fun.assign(i["anns"])
-    break
+result = assign_fun.assign(annos)
 
 print(torch.where(result>1))
 

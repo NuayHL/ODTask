@@ -1,0 +1,14 @@
+input:
+ width: 32
+ height: 32
+ bboxtype: fbox #bbox(vbox)/hbox/fbox
+ batchSize: 1
+
+assign_cfg:
+ assignType: default #default/ATSS
+ ioutype: iou
+ threshold: 0.5
+
+anchors:
+ ratios : [1,2]
+ scales : [0.25]
