@@ -1,9 +1,10 @@
 import numpy as np
 from training.config import cfg
 
-def generateAnchors(fpnlevels=None, basesize=None, ratios=None, scales=None):
+def generateAnchors(fpnlevels=None, basesize=None, ratios=None, scales=None, singleBatch=False):
     '''
     return: batch_size X total_anchor_numbers X 4
+    singleBatch: set True if only need batchsize at 1
     '''
     if fpnlevels == None:
         fpnlevels = [3,4,5]
@@ -34,6 +35,8 @@ def generateAnchors(fpnlevels=None, basesize=None, ratios=None, scales=None):
                 anchors[start:start+lenAnchors, 3] += basesize[idx] * scale * ratio / 2.0
                 start += lenAnchors
         allAnchors = np.append(allAnchors,anchors,axis=0)
+
+    if singleBatch: return allAnchors
 
     allAnchors = np.tile(allAnchors, (cfg.batch_size,1,1))
 

@@ -10,15 +10,17 @@ from torch.utils.data import DataLoader
 import numpy as np
 import torch
 from models.yolo import Yolov3_core
+from training.assign import AnchAssign
 
 ID = 131
+
+assign = AnchAssign()
 
 model = Yolov3_core().to("cuda")
 dataset = CrowdHDataset("CrowdHuman/annotation_train_coco_style.json")
 loader = DataLoader(dataset, batch_size=8,collate_fn=OD_default_collater)
 for i in loader:
-    print(len(i["imgs"]))
-    print(len(i["anns"]))
+
     break
 
 
