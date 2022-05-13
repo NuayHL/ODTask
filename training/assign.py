@@ -4,8 +4,6 @@ import torch
 from .iou import IOU
 from .config import cfg
 from models.anchor import generateAnchors
-from itertools import product
-
 
 class AnchAssign():
     def __init__(self, anchors=generateAnchors(), _cfg = cfg):
@@ -21,7 +19,7 @@ class AnchAssign():
     def assign(self,gt):
         '''
         using batch_sized data input
-        :param gt:
+        :param gt:aka:"anns":List lenth B, each with np.float32 ann}
         :return:the same sture of self.anchs, but filled
                 with value indicates the assignment of the anchor
         '''

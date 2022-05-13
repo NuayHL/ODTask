@@ -1,6 +1,7 @@
 import json
 import cv2
 import numpy as np
+import torch
 from pycocotools.coco import COCO
 from util import progressbar
 from torch.utils.data import Dataset
@@ -126,7 +127,7 @@ def OD_default_collater(data):
     {"imgs":List lenth B, each with np.float32 img
      "anns":List lenth B, each with np.float32 ann}
     '''
-    imgs = [np.transpose(preprocess_train(s["img"].astype(np.float32)), (2, 0, 1)) for s in data]
+    imgs = torch.stack([torch.from_numpy(np.transpose(preprocess_train(s["img"].astype(np.float32)), (2, 0, 1))).float() for s in data])
     annos = [np.array(s["anns"]).astype(np.float32) for s in data]
 
     return {"imgs":imgs, "anns":annos}

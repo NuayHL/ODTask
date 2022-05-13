@@ -5,6 +5,10 @@ from training.assign import AnchAssign
 from models.anchor import generateAnchors
 
 class Defaultloss(nn.Module):
+    '''
+    {"imgs":List lenth B, each with np.float32 img
+     "anns":List lenth B, each with np.float32 ann}
+    '''
     def __init__(self):
         super(Defaultloss, self).__init__()
         self.label_assignment = AnchAssign()

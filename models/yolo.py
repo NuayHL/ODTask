@@ -20,18 +20,23 @@ class YOLOv3(nn.Module):
         self.nms = nms
         self.istraining = istrainig
     def forward(self,x):
+        '''
+        when training, x: tuple(img(Tensor),annos)
+        when inferencing, x:
+        '''
         if not self.istraining:
             return self.inference(x)
         else:
             input, anno = x
+            result = self.core(input)
             return self.cal_loss(input,anno)
 
     def inference(self,x):
         inputtensor = self.core(x)
         return self.nms(inputtensor)
 
-    def cal_loss(self,input,anno):
-        return self.loss(input,anno)
+    def cal_loss(self,result,anno):
+        return self.loss(result,anno)
 
 class Yolov3_core(nn.Module):
     def __init__(self, numofclasses=2, backbone=Darknet53):
