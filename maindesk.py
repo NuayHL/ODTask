@@ -11,12 +11,12 @@ import numpy as np
 import torch
 from models.yolo import Yolov3_core
 from training.assign import AnchAssign
-from training.config import cfg
+from training.config import _cfg
 
 ID = 1
 
 dataset = CrowdHDataset("CrowdHuman/annotation_train_coco_style.json")
-loader = DataLoader(dataset, batch_size=cfg.batch_size, collate_fn=OD_default_collater)
+loader = DataLoader(dataset, batch_size=_cfg.batch_size, collate_fn=OD_default_collater)
 assign_fun = AnchAssign()
 
 for batch in loader:

@@ -84,7 +84,7 @@ def odgt2coco(filepath, outputname, type):
     json.dump(output, open("../CrowdHuman/"+outputname+".json",'w'))
 
 class CrowdHDataset(Dataset):
-    def __init__(self,annotationPath, type="train",bbox_type=cfg.input_bboxtype):
+    def __init__(self, annotationPath, type="train", bbox_type=cfg.input_bboxtype):
         super(CrowdHDataset, self).__init__()
         self.jsonPath = annotationPath
         self.imgPath = "CrowdHuman/Images_"+type+"/"
@@ -98,8 +98,8 @@ class CrowdHDataset(Dataset):
     def __getitem__(self, idx):
         idx += 1
         img = self.annotations.loadImgs(idx)
-        fx = cfg.input_height/float(img[0]["height"])
-        fy = cfg.input_width/float(img[0]["width"])
+        fx = cfg.input_height / float(img[0]["height"])
+        fy = cfg.input_width / float(img[0]["width"])
         img = cv2.imread(self.imgPath + img[0]["file_name"] + ".jpg")
         img = cv2.resize(img, (cfg.input_height, cfg.input_width))
 

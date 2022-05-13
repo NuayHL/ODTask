@@ -23,7 +23,7 @@ class AnchAssign():
         using batch_sized data input
         :param gt:
         :return:the same sture of self.anchs, but filled
-                with bool value
+                with value indicates the assignment of the anchor
         '''
         if self.assignType == "default":
             return self._retinaAssign(gt)

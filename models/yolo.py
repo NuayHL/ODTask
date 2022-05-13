@@ -8,24 +8,30 @@ from .backbone import Darknet53
 from .common import conv_batch
 from training.loss import Defaultloss
 from training.config import cfg
+from models.nms import NMS
 
-anchors_per_grid = len(cfg.anchorRatio)*len(cfg.anchorScales)
+anchors_per_grid = len(cfg.anchorRatio) * len(cfg.anchorScales)
 
 class YOLOv3(nn.Module):
-    def __init__(self,numofclasees=2,ioutype="iou",loss=Defaultloss,istrainig=False):
+    def __init__(self,numofclasees=2,ioutype="iou",loss=Defaultloss(), nms=NMS(),istrainig=False):
         super(YOLOv3, self).__init__()
         self.core = Yolov3_core(numofclasees)
         self.loss = loss
+        self.nms = nms
         self.istraining = istrainig
     def forward(self,x):
         if not self.istraining:
-            return self.inference(self.core(x))
-
+            return self.inference(x)
         else:
-            pass
+            input, anno = x
+            return self.cal_loss(input,anno)
 
     def inference(self,x):
-        pass
+        inputtensor = self.core(x)
+        return self.nms(inputtensor)
+
+    def cal_loss(self,input,anno):
+        return self.loss(input,anno)
 
 class Yolov3_core(nn.Module):
     def __init__(self, numofclasses=2, backbone=Darknet53):

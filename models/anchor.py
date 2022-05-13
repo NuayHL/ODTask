@@ -1,7 +1,7 @@
 import numpy as np
 from training.config import cfg
 
-def generateAnchors(fpnlevels=None, basesize=None, ratios=None, scales=None, singleBatch=False):
+def generateAnchors(fpnlevels=None, basesize=None, ratios=None, scales=None, singleBatch=False,_cfg=cfg):
     '''
     return: batch_size X total_anchor_numbers X 4
     singleBatch: set True if only need batchsize at 1
@@ -12,16 +12,16 @@ def generateAnchors(fpnlevels=None, basesize=None, ratios=None, scales=None, sin
         basesize = [2**(x+2) for x in fpnlevels]
     if ratios == None:
         # ratios = h/w
-        ratios = cfg.anchorRatio
+        ratios = _cfg.anchorRatio
     if scales == None:
-        scales = cfg.anchorScales
+        scales = _cfg.anchorScales
 
     # formate = x1y1x2y2
     allAnchors = np.zeros((0,4)).astype(np.float32)
     for idx, p in enumerate(fpnlevels):
         stride = [2**p, 2**p]
-        xgrid = np.arange(0,cfg.input_width,stride[0]) + stride[0]/2.0
-        ygrid = np.arange(0,cfg.input_height,stride[1]) + stride[1]/2.0
+        xgrid = np.arange(0, _cfg.input_width, stride[0]) + stride[0] / 2.0
+        ygrid = np.arange(0, _cfg.input_height, stride[1]) + stride[1] / 2.0
         xgrid, ygrid = np.meshgrid(xgrid, ygrid)
         anchors = np.vstack((xgrid.ravel(),ygrid.ravel()))
         lenAnchors = anchors.shape[1]
@@ -38,7 +38,7 @@ def generateAnchors(fpnlevels=None, basesize=None, ratios=None, scales=None, sin
 
     if singleBatch: return allAnchors
 
-    allAnchors = np.tile(allAnchors, (cfg.batch_size,1,1))
+    allAnchors = np.tile(allAnchors, (_cfg.batch_size, 1, 1))
 
     return allAnchors
 

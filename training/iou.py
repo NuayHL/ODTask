@@ -14,8 +14,16 @@ class IOU(nn.Module):
         WARNING: the input must be bboxs, i.e. len(dt.shape)==2
         :param dt: detect bboxes or anchor bboxes
         :param gt: gt bboxes
-        :return: ious
+        :return: ious/
         '''
+        if self.ioutype == "iou":
+            return self._iou(dt,gt)
+        if self.ioutype == "giou":
+            return self._giou(dt,gt)
+        else:
+            raise NotImplementedError("Unknown iouType")
+
+    def _iou(self,dt,gt):
         dt_x1 = dt[:, 0]
         dt_y1 = dt[:, 1]
         dt_x2 = dt[:, 2]
@@ -31,15 +39,16 @@ class IOU(nn.Module):
         y_min = torch.max(dt_y1, gt_y1)
         y_max = torch.min(dt_y2, gt_y2)
 
-        w_int = torch.clamp(x_max - x_min,0)
-        h_int = torch.clamp(y_max - y_min,0)
+        w_int = torch.clamp(x_max - x_min, 0)
+        h_int = torch.clamp(y_max - y_min, 0)
 
-        join = w_int*h_int
-        union = (dt_x2-dt_x1)*(dt_y2-dt_y1)+(gt_x2-gt_x1)*(gt_y2-gt_y1)-join+1e-7
-
-        result = join/union
-
+        join = w_int * h_int
+        union = (dt_x2 - dt_x1) * (dt_y2 - dt_y1) + (gt_x2 - gt_x1) * (gt_y2 - gt_y1) - join + 1e-7
+        result = join / union
         return result
+
+    def _giou(self,dt,gt):
+        pass
 
 class Iou():
     def __init__(self, ioutype="iou", ip1type="default", ip2type="default"):
