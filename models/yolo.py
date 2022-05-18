@@ -37,23 +37,22 @@ class YOLOv3(nn.Module):
         return self.nms(inputtensor)
 
     def cal_loss(self,result,anno):
-
+        result = self._result_parse(result)
         return self.loss(result,anno)
 
     def _result_parse(self,triple):
         '''
         flatten the results according to the format of anchors
         '''
-        base_len = int(triple[0].shape[1]/anchors_per_grid)
-        out = torch.zeros((triple[0].shape[0],0, int(5 + self.numofclasses)))
+        out = torch.zeros((triple[0].shape[0], int(5 + self.numofclasses),0))
+        if torch.cuda.is_available():
+            out = out.cuda()
         for fp in triple:
             fp = torch.flatten(fp,start_dim=2)
             split = torch.split(fp,int(fp.shape[1]/anchors_per_grid),dim=1)
-            out = torch.stack(split,dim=-1)
-
-
-
-
+            split = torch.cat(split,dim=2)
+            out = torch.cat((out,split),dim=2)
+        return out
 
 class Yolov3_core(nn.Module):
     def __init__(self, numofclasses=2, backbone=Darknet53):
