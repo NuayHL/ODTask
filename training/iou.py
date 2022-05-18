@@ -4,18 +4,28 @@ import torch
 import torch.nn as nn
 
 class IOU(nn.Module):
-    def __init__(self,bboxtype="default",ioutype="iou"):
+    def __init__(self,dt_type="x1y1x2y2", gt_type="x1y1x2y2", ioutype="iou"):
+        '''
+        bboxtype: x1y1x2y2/x1y1wh/xywh
+        default using x1y1x2y2 for calculation
+        '''
         super(IOU, self).__init__()
         self.ioutype = ioutype
-        self.bboxtype = bboxtype
+        self.dt_type = dt_type
+        self.gt_type = gt_type
 
     def forward(self,dt,gt):
         '''
         WARNING: the input must be bboxs, i.e. len(dt.shape)==2
         :param dt: detect bboxes or anchor bboxes
         :param gt: gt bboxes
-        :return: ious/
+        :return: ious
         '''
+        if self.dt_type == "x1y1x2y2":
+            pass
+        elif self.dt_type == "x1y1wh":
+            dt = self._x1y1wh_to_x1y1x2y2(dt)
+
         if self.ioutype == "iou":
             return self._iou(dt,gt)
         if self.ioutype == "giou":
@@ -49,6 +59,12 @@ class IOU(nn.Module):
 
     def _giou(self,dt,gt):
         pass
+
+    def _x1y1wh_to_x1y1x2y2(self, input):
+        input[:, 2] = input[:, 0] + input[:, 2]
+        input[:, 3] = input[:, 1] + input[:, 3]
+        return input
+
 
 class Iou():
     def __init__(self, ioutype="iou", ip1type="default", ip2type="default"):

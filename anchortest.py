@@ -1,16 +1,8 @@
-import time
 import torch
+from models.anchor import generateAnchors
+from training.assign import AnchAssign
+a = generateAnchors()
+print(a.shape)
+b = AnchAssign()
+result = b.assign()
 
-def test(a):
-    for i in range(a.shape[0]):
-        if a[i]>0.5: a[i]+=1
-        else: a[i] -=1
-    return time.time()
-
-t = torch.rand(1000000).float()
-tic = time.time()
-print(test(t)-tic)
-
-t=t.cuda()
-tic = time.time()
-print(test(t)-tic)

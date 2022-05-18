@@ -13,9 +13,10 @@ from models.nms import NMS
 anchors_per_grid = len(cfg.anchorRatio) * len(cfg.anchorScales)
 
 class YOLOv3(nn.Module):
-    def __init__(self,numofclasees=2,ioutype="iou",loss=Defaultloss(), nms=NMS(),istrainig=False):
+    def __init__(self, numofclasses=2, ioutype="iou", loss=Defaultloss(), nms=NMS(), istrainig=False):
         super(YOLOv3, self).__init__()
-        self.core = Yolov3_core(numofclasees)
+        self.numofclasses = numofclasses
+        self.core = Yolov3_core(numofclasses)
         self.loss = loss
         self.nms = nms
         self.istraining = istrainig
@@ -36,7 +37,23 @@ class YOLOv3(nn.Module):
         return self.nms(inputtensor)
 
     def cal_loss(self,result,anno):
+
         return self.loss(result,anno)
+
+    def _result_parse(self,triple):
+        '''
+        flatten the results according to the format of anchors
+        '''
+        base_len = int(triple[0].shape[1]/anchors_per_grid)
+        out = torch.zeros((triple[0].shape[0],0, int(5 + self.numofclasses)))
+        for fp in triple:
+            fp = torch.flatten(fp,start_dim=2)
+            split = torch.split(fp,int(fp.shape[1]/anchors_per_grid),dim=1)
+            out = torch.stack(split,dim=-1)
+
+
+
+
 
 class Yolov3_core(nn.Module):
     def __init__(self, numofclasses=2, backbone=Darknet53):
@@ -86,5 +103,5 @@ class Yolov3_core(nn.Module):
         f2 = self.to_featuremap2(f2) # W/16 512
         f3 = self.to_featuremap3(f3) # W/8  256
 
-        return f1, f2, f3
+        return f3, f2, f1
 

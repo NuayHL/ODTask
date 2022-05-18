@@ -14,34 +14,31 @@ from data.trandata import CrowdHDataset, OD_default_collater
 from torch.utils.data import DataLoader
 import numpy as np
 import torch
+import torch.nn as nn
 from models.yolo import Yolov3_core
 from models.backbone import Darknet53
-from models.darknet53 import darknet53
 from training.assign import AnchAssign
 from training.config import cfg
 from util.primary import numofParameters
 
 ID = 1
 
-testinput = torch.rand((8,3,512,512))
+model = Yolov3_core(numofclasses=1)
+model = nn.DataParallel(model)
+model = model.cuda()
 
-model = Yolov3_core(numofclasses=1).cuda()
-print(numofParameters(model))
+dataset = CrowdHDataset("CrowdHuman/annotation_train_coco_style.json")
+loader = DataLoader(dataset, batch_size=cfg.batch_size, collate_fn=OD_default_collater)
+for batch in loader:
+    print(batch["imgs"].shape)
+    input = batch["imgs"].cuda()
+    result = model(input)
+    break
 
-model1 = Darknet53(numofclasses=1).cuda()
-print(numofParameters(model1))
+print(result[0].shape,result[1].shape,result[2].shape)
 
-model2 = darknet53(1).cuda()
-print(numofParameters(model2))
-# dataset = CrowdHDataset("CrowdHuman/annotation_train_coco_style.json")
-# loader = DataLoader(dataset, batch_size=cfg.batch_size, collate_fn=OD_default_collater)
-# for batch in loader:
-#     print(batch["imgs"].shape)
-#     input = batch["imgs"].cuda()
-#     result = model(input)
-#     break
-
-# print(result[0].shape,result[1].shape,result[2].shape)
+a  = torch.flatten(result[0],start_dim=2)
+print(a.shape)
 
 
 
