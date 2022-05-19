@@ -21,17 +21,37 @@ class IOU(nn.Module):
         :param gt: gt bboxes
         :return: ious
         '''
-        if self.dt_type == "x1y1x2y2":
-            pass
-        elif self.dt_type == "x1y1wh":
+        if self.dt_type == "x1y1wh":
             dt = self._x1y1wh_to_x1y1x2y2(dt)
 
         if self.ioutype == "iou":
-            return self._iou(dt,gt)
+            return self._iou_a(dt,gt)
         if self.ioutype == "giou":
             return self._giou(dt,gt)
         else:
             raise NotImplementedError("Unknown iouType")
+
+    def _iou_a(self,a, b):
+        '''
+        Advanced: doesn't require a, b the same lenth
+        '''
+        area = (b[:, 2] - b[:, 0]) * (b[:, 3] - b[:, 1])
+
+        w_int = torch.min(torch.unsqueeze(a[:, 2], dim=1), b[:, 2]) - torch.max(torch.unsqueeze(a[:, 0], 1), b[:, 0])
+        h_int = torch.min(torch.unsqueeze(a[:, 3], dim=1), b[:, 3]) - torch.max(torch.unsqueeze(a[:, 1], 1), b[:, 1])
+
+        w_int = torch.clamp(w_int, min=0)
+        h_int = torch.clamp(h_int, min=0)
+
+        intersection = w_int * h_int
+
+        union = torch.unsqueeze((a[:, 2] - a[:, 0]) * (a[:, 3] - a[:, 1]), dim=1) + area - intersection
+
+        union = torch.clamp(union, min=1e-8)
+
+        IoU = intersection / union
+
+        return IoU
 
     def _iou(self,dt,gt):
         dt_x1 = dt[:, 0]
@@ -66,35 +86,5 @@ class IOU(nn.Module):
         return input
 
 
-class Iou():
-    def __init__(self, ioutype="iou", ip1type="default", ip2type="default"):
-        assert ip1type and ip2type in ["default", "crowdhuman", "diagonal"], "Unknown bbox format"
-        assert ioutype in ["iou","giou"],"Unknow iou type"
-        self.ip1 = ip1type
-        self.ip2 = ip2type
-        self.ioutype = ioutype
 
-    def _tranInput(self, ):
-        pass
-
-    # need to compute for loss backward, how?
-    def iou(self, bbox1, bbox2):
-        xmin = torch.max(bbox1[0:1],bbox2[0:1])
-        xmax = torch.min(bbox1[2:3],bbox2[2:3])
-        ymin = torch.max(bbox1[1:2],bbox2[1:2])
-        ymax = torch.min(bbox1[3:4],bbox2[3:4])
-        xlen = torch.clamp(xmax-xmin,0)
-        ylen = torch.clamp(ymax-ymin,0)
-        join = xlen*ylen
-        to = (bbox1[2:3]-bbox1[0:1])*(bbox1[3:4]-bbox1[1:2])+(bbox2[2:3]-bbox2[0:1])*(bbox2[3:4]-bbox2[1:2])-join
-        return join/to
-
-    def giou(self, bbox1, bbox2):
-        pass
-
-    def make(self):
-        if self.ioutype == "iou":
-            return self.iou
-        elif self.ioutype == "giou":
-            return self.giou
 

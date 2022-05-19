@@ -42,6 +42,12 @@ def generateAnchors(fpnlevels=None, basesize=None, ratios=None, scales=None, sin
 
     return allAnchors
 
+def anchors_parse():
+    '''
+    return the real bbox the anchor predict
+    '''
+    pass
+
 def filterAnchors(anchors_arranged_arrays, feature_level=None, row=None, col=None, ratio=None, scale=None):
     '''
     return designate anchor result

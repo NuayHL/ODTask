@@ -16,6 +16,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 from models.yolo import Yolov3_core
+from models.yolo import YOLOv3
 from models.backbone import Darknet53
 from training.assign import AnchAssign
 from training.config import cfg
@@ -23,8 +24,8 @@ from util.primary import numofParameters
 
 ID = 1
 
-model = Yolov3_core(numofclasses=1)
-model = nn.DataParallel(model)
+assigns = AnchAssign()
+model = YOLOv3(numofclasses=1)
 model = model.cuda()
 
 dataset = CrowdHDataset("CrowdHuman/annotation_train_coco_style.json")
@@ -32,13 +33,16 @@ loader = DataLoader(dataset, batch_size=cfg.batch_size, collate_fn=OD_default_co
 for batch in loader:
     print(batch["imgs"].shape)
     input = batch["imgs"].cuda()
-    result = model(input)
+    anns = batch["anns"]
+    assign = assigns.assign(anns)
+    result = model.core(input)
+    parsed = model._result_parse(result)
     break
 
 print(result[0].shape,result[1].shape,result[2].shape)
+print("parsed:",parsed.shape)
+print("assignresult: ", assign.shape)
 
-a  = torch.flatten(result[0],start_dim=2)
-print(a.shape)
 
 
 

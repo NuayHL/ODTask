@@ -32,28 +32,19 @@ class AnchAssign():
 
     def _retinaAssign(self,gt):
         singleAch = self.anchs[0,:]
+        singleAch = torch.from_numpy(singleAch).double()
         if torch.cuda.is_available():
-            singleAch = torch.from_numpy(singleAch).double().cuda()
-        else:
-            singleAch = torch.from_numpy(singleAch).double()
+            singleAch = singleAch.cuda()
 
         output_size = self.anchs.shape[:2]
         assign_result = torch.zeros(tuple(output_size))
         for ib in range(self.cfg.batch_size):
             imgAnn = gt[ib]
-            lenth_gt = len(imgAnn)
+            imgAnn = torch.from_numpy(imgAnn).double()
             if torch.cuda.is_available():
-                imgAnn = torch.from_numpy(imgAnn).double().cuda()
-            else:
-                imgAnn = torch.from_numpy(imgAnn).double()
+                imgAnn = imgAnn.cuda()
 
-            pair_anc = torch.repeat_interleave(singleAch, lenth_gt, dim=0)
-            pair_gt = torch.repeat_interleave(imgAnn.unsqueeze(0), self.anchs_len, dim=0)
-            pair_gt = torch.flatten(pair_gt,start_dim=0, end_dim=1)
-
-            iou_matrix = self.iou(pair_anc, pair_gt)
-            iou_matrix = iou_matrix.reshape((self.anchs_len,lenth_gt))
-            look = iou_matrix.cpu().numpy()
+            iou_matrix = self.iou(singleAch, imgAnn)
             iou_max_value, iou_max_idx = torch.max(iou_matrix, dim=1)
             # negative: 0
             # ignore: -1
