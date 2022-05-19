@@ -14,7 +14,7 @@ class AnchAssign():
         self.anchs = anchors
         self.anchs_len = anchors.shape[1]
         self.assignType = _cfg.assignType
-        self.iou = IOU(ioutype=_cfg.iouType)
+        self.iou = IOU(ioutype=_cfg.iouType, gt_type='x1y1wh')
         self.threshold_iou = _cfg.threshold
     def assign(self,gt):
         '''
@@ -39,7 +39,7 @@ class AnchAssign():
         output_size = self.anchs.shape[:2]
         assign_result = torch.zeros(tuple(output_size))
         for ib in range(self.cfg.batch_size):
-            imgAnn = gt[ib]
+            imgAnn = gt[ib][:,:4]
             imgAnn = torch.from_numpy(imgAnn).double()
             if torch.cuda.is_available():
                 imgAnn = imgAnn.cuda()

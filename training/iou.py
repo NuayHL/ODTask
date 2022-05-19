@@ -21,8 +21,7 @@ class IOU(nn.Module):
         :param gt: gt bboxes
         :return: ious
         '''
-        if self.dt_type == "x1y1wh":
-            dt = self._x1y1wh_to_x1y1x2y2(dt)
+        dt, gt = self._transfer(dt, gt)
 
         if self.ioutype == "iou":
             return self._iou_a(dt,gt)
@@ -30,6 +29,14 @@ class IOU(nn.Module):
             return self._giou(dt,gt)
         else:
             raise NotImplementedError("Unknown iouType")
+
+    def _transfer(self,dt,gt):
+        if self.dt_type == "x1y1wh":
+            dt = self._x1y1wh_to_x1y1x2y2(dt)
+
+        if self.gt_type == "x1y1wh":
+            gt = self._x1y1wh_to_x1y1x2y2(gt)
+        return dt, gt
 
     def _iou_a(self,a, b):
         '''

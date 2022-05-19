@@ -25,24 +25,18 @@ from util.primary import numofParameters
 ID = 1
 
 assigns = AnchAssign()
-model = YOLOv3(numofclasses=1)
+model = YOLOv3(numofclasses=1,istrainig=True)
 model = model.cuda()
 
 dataset = CrowdHDataset("CrowdHuman/annotation_train_coco_style.json")
 loader = DataLoader(dataset, batch_size=cfg.batch_size, collate_fn=OD_default_collater)
 for batch in loader:
     print(batch["imgs"].shape)
-    input = batch["imgs"].cuda()
-    anns = batch["anns"]
-    assign = assigns.assign(anns)
-    result = model.core(input)
-    parsed = model._result_parse(result)
+    batch["imgs"] = batch["imgs"].cuda()
+    result = model(batch)
     break
 
-print(result[0].shape,result[1].shape,result[2].shape)
-print("parsed:",parsed.shape)
-print("assignresult: ", assign.shape)
-
+print(result)
 
 
 

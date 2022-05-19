@@ -28,9 +28,9 @@ class YOLOv3(nn.Module):
         if not self.istraining:
             return self.inference(x)
         else:
-            input, anno = x
+            input, anno = x["imgs"], x["anns"]
             result = self.core(input)
-            return self.cal_loss(input,anno)
+            return self.cal_loss(result,anno)
 
     def inference(self,x):
         inputtensor = self.core(x)

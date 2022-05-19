@@ -118,6 +118,8 @@ class CrowdHDataset(Dataset):
         bbox[2] *= fx
         bbox[1] *= fy
         bbox[3] *= fy
+        # adding classes index
+        bbox.append(1)
         return bbox
 
 def OD_default_collater(data):
