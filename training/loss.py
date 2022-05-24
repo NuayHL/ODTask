@@ -83,6 +83,9 @@ class Defaultloss(nn.Module):
 
             # bbox loss
 
+            # skip if no bbox matched
+            if total_pbox==0: continue
+
             anch_w_box = self.anch_w[positive_idx_box]
             anch_h_box = self.anch_h[positive_idx_box]
             anch_x_box = self.anch_x[positive_idx_box]
@@ -107,6 +110,7 @@ class Defaultloss(nn.Module):
 
         bbox_loss = torch.stack(bbox_loss)
         cls_loss = torch.stack(cls_loss)
-        loss_matrix = torch.stack([bbox_loss,cls_loss])
-        loss = loss_matrix.sum()
+        bbox_loss = bbox_loss.sum()
+        cls_loss = cls_loss.sum()
+        loss = torch.add(bbox_loss,cls_loss)
         return loss/self.batch_size

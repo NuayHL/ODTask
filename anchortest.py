@@ -30,5 +30,7 @@ for i,batch in enumerate(loader):
     if i==7:
         batch["imgs"] = batch["imgs"].to(cfg.pre_device)
         losses = model(batch)
+        losses.backward()
         print(losses)
         break
+
