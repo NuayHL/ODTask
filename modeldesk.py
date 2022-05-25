@@ -1,11 +1,11 @@
-#用于对模型进行测试
-import os
-os.chdir("../ODTask")
-
-from training.iou import IOU
 import torch
-a = torch.Tensor([[0,4,8,20]]).cuda()
-b = torch.Tensor([[2,2,8,8]]).cuda()
 
-iou = IOU()
-print(iou(a,b))
+a = torch.tensor([-1,2,-1.5,4,5],dtype=torch.float,requires_grad=True)
+print(a)
+a = torch.clamp(a,-2,0)
+print(a)
+b = a*a
+print(a)
+c = b.sum()
+c.backward()
+print(a)

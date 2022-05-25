@@ -105,8 +105,8 @@ class Defaultloss(nn.Module):
 
             bbox_loss.append(box_loss_ib.sum() / positive_idx_box.sum())
 
-        loss = 0
-        for i in zip(bbox_loss, cls_loss):
-            loss += (i[0] + i[1])
-
+        bbox_loss = torch.stack(bbox_loss)
+        cls_loss = torch.stack(cls_loss)
+        loss_matrix = torch.stack([bbox_loss,cls_loss])
+        loss = loss_matrix.sum()
         return loss/self.batch_size
