@@ -46,7 +46,7 @@ class Defaultloss(nn.Module):
         if torch.cuda.is_available():
             dt = dt.to(cfg.pre_device)
 
-        dt[:, 4:, :] = torch.clamp(dt[:, 4:, :], 1e-4, 1.0 - 1e-4)
+        dt_class_md = torch.clamp(dt[:, 4:, :], 1e-4, 1.0 - 1e-4).clone()
 
         for ib in range(dt.shape[0]):
 
@@ -76,7 +76,7 @@ class Defaultloss(nn.Module):
             assign_result_cal = torch.cat((torch.unsqueeze(assign_result_cal, dim=1),
                                           one_hot_bed[positive_idx_cls]), dim=1)
             assign_result_cal = torch.clamp(assign_result_cal,1e-4, 1.0 - 1e-4)
-            dt_cls = dt[ib, 4:, positive_idx_cls].t()
+            dt_cls = dt_class_md[ib, :, positive_idx_cls].t()
             cls_loss_ib = -dt_cls * torch.log(assign_result_cal) + \
                           (dt_cls - 1.0) * torch.log(1.0 - assign_result_cal)
             cls_loss.append(cls_loss_ib.sum() / positive_idx_cls.sum())

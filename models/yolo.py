@@ -46,7 +46,7 @@ class YOLOv3(nn.Module):
         '''
         out = torch.zeros((triple[0].shape[0], int(5 + self.numofclasses),0))
         if torch.cuda.is_available():
-            out = out.cuda()
+            out = out.to(cfg.pre_device)
         for fp in triple:
             fp = torch.flatten(fp,start_dim=2)
             split = torch.split(fp,int(fp.shape[1]/anchors_per_grid),dim=1)

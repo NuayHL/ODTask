@@ -1,11 +1,11 @@
 device:
- preprocess: cuda0
+ preprocess: cuda1
 
 input:
  width: 800
  height: 1024
  bboxtype: fbox #bbox(vbox)/hbox/fbox
- batchSize: 4
+ batchSize: 2
 
 assign_cfg:
  assignType: default #default/ATSS
@@ -17,4 +17,4 @@ anchors:
  scales : [0.75,1]
 
 training:
- epoch : 10
+ epoch : 2

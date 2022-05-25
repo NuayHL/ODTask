@@ -23,14 +23,12 @@ from training.assign import AnchAssign
 from training.config import cfg
 
 loss = Defaultloss()
-
+model = YOLOv3(numofclasses=1,istrainig=True).to(cfg.pre_device)
 dataset = CrowdHDataset("CrowdHuman/annotation_train_coco_style.json")
 loader = DataLoader(dataset, batch_size=cfg.batch_size, collate_fn=OD_default_collater)
-for batch in loader:
-    anno = batch["anns"]
-    dummyinput = torch.rand((4,6,67200),requires_grad=True)
-    with torch.autograd.set_detect_anomaly(True):
-        losses = loss(dummyinput,anno)
-    break
-
-losses.backward()
+for i,batch in enumerate(loader):
+    if i==7:
+        batch["imgs"] = batch["imgs"].to(cfg.pre_device)
+        losses = model(batch)
+        print(losses)
+        break

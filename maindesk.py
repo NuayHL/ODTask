@@ -14,8 +14,6 @@ from util.visualization import show_bbox
 from data.trandata import CrowdHDataset, OD_default_collater
 from torch.utils.data import DataLoader
 import training.running as run
-import torch
-import torch.nn as nn
 
 from models.yolo import YOLOv3
 from training.assign import AnchAssign
@@ -23,11 +21,10 @@ from training.config import cfg
 
 assigns = AnchAssign()
 model = YOLOv3(numofclasses=1,istrainig=True)
-model = model.cuda()
+model = model.to(cfg.pre_device)
 
 dataset = CrowdHDataset("CrowdHuman/annotation_train_coco_style.json")
 loader = DataLoader(dataset, batch_size=cfg.batch_size, collate_fn=OD_default_collater)
-with torch.autograd.set_detect_anomaly(True):
-    run.training(model,loader)
+run.training(model,loader)
 run.model_save_gen(model,"testing")
 

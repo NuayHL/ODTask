@@ -22,11 +22,11 @@ def training(model:nn.Module, loader:DataLoader, optimizer=None, epoch=cfg.train
 
     for i in range(epoch):
         for idx, batch in enumerate(loader):
-            batch["imgs"] = batch["imgs"].cuda()
+            batch["imgs"] = batch["imgs"].to(cfg.pre_device)
             optimizer.zero_grad()
             loss = model(batch)
             loss.backward()
             optimizer.step()
-            print("epoch",i,":",idx,"/",lenepoch,"//loss:",loss)
+            print("epoch",i,"/",cfg.trainingEpoch,":",idx,"/",lenepoch,"//loss:",loss.item())
 
 

@@ -1,5 +1,5 @@
 device:
- preprocess: cuda0
+ preprocess: cuda1
 
 input:
  width: 32
