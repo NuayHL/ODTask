@@ -34,15 +34,17 @@ class AnchAssign():
         singleAch = self.anchs[0,:]
         singleAch = torch.from_numpy(singleAch).double()
         if torch.cuda.is_available():
-            singleAch = singleAch.cuda()
+            singleAch = singleAch.to(self.cfg.pre_device)
 
         output_size = self.anchs.shape[:2]
         assign_result = torch.zeros(tuple(output_size))
+        if torch.cuda.is_available():
+            assign_result = assign_result.to(self.cfg.pre_device)
         for ib in range(self.cfg.batch_size):
             imgAnn = gt[ib][:,:4]
             imgAnn = torch.from_numpy(imgAnn).double()
             if torch.cuda.is_available():
-                imgAnn = imgAnn.cuda()
+                imgAnn = imgAnn.to(self.cfg.pre_device)
 
             iou_matrix = self.iou(singleAch, imgAnn)
             iou_max_value, iou_max_idx = torch.max(iou_matrix, dim=1)

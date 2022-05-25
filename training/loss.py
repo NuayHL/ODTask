@@ -23,7 +23,7 @@ class Defaultloss(nn.Module):
 
     def _pre_anchor(self):
         if torch.cuda.is_available():
-            self.anchs = self.anchs.cuda()
+            self.anchs = self.anchs.to(cfg.pre_device)
         self.anch_w = self.anchs[:, 2] - self.anchs[:, 0]
         self.anch_h = self.anchs[:, 3] - self.anchs[:, 1]
         self.anch_x = self.anchs[:, 0] + 0.5 * self.anch_w
@@ -36,6 +36,7 @@ class Defaultloss(nn.Module):
         gt: list, each is np.array, with shape (4+1) at dim=-1
         '''
         self.classes = dt.shape[1] - 5
+        self.batch_size = dt.shape[0]
 
         bbox_loss = []
         cls_loss = []
@@ -43,7 +44,7 @@ class Defaultloss(nn.Module):
         assign_result = self.label_assignment.assign(gt)
 
         if torch.cuda.is_available():
-            assign_result = assign_result.cuda()
+            dt = dt.to(cfg.pre_device)
 
         dt[:, 4:, :] = torch.clamp(dt[:, 4:, :], 1e-4, 1.0 - 1e-4)
 
@@ -54,17 +55,22 @@ class Defaultloss(nn.Module):
             positive_idx_box = torch.ge(assign_result[ib] - 1.0, -0.1)
             # the assigned ones
 
+            total_pcls = positive_idx_cls.sum()
+            total_pbox = positive_idx_box.sum()
+
             imgAnn = gt[ib]
             imgAnn = torch.from_numpy(imgAnn).float()
             if torch.cuda.is_available():
-                imgAnn = imgAnn.cuda()
+                imgAnn = imgAnn.to(cfg.pre_device)
 
             assign_result_box = assign_result[ib][positive_idx_box].long()-1
             assigned_anns = imgAnn[assign_result_box]
 
             # cls loss
             assign_result_cal = torch.clamp(assign_result[ib][positive_idx_cls], 0., 1.)
-            one_hot_bed = torch.zeros((assign_result.shape[1], self.classes), dtype=torch.int64).cuda()
+            one_hot_bed = torch.zeros((assign_result.shape[1], self.classes), dtype=torch.int64)
+            if torch.cuda.is_available():
+                one_hot_bed = one_hot_bed.to(cfg.pre_device)
             one_hot_bed[positive_idx_box] = one_hot(assigned_anns[:, 4].long() - 1,
                                                     num_classes=self.classes)
             assign_result_cal = torch.cat((torch.unsqueeze(assign_result_cal, dim=1),
@@ -103,4 +109,4 @@ class Defaultloss(nn.Module):
         for i in zip(bbox_loss, cls_loss):
             loss += (i[0] + i[1])
 
-        return loss
+        return loss/self.batch_size

@@ -1,3 +1,6 @@
+device:
+ preprocess: cuda0
+
 input:
  width: 800
  height: 1024
@@ -12,3 +15,6 @@ assign_cfg:
 anchors:
  ratios : [3,5]
  scales : [0.75,1]
+
+training:
+ epoch : 10

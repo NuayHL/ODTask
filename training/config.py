@@ -5,6 +5,9 @@ class Config():
     def __init__(self,cfgPath):
         with open(cfgPath,"r") as f:
             self.cfg = yaml.safe_load(f.read())
+        #device
+        self.pre_device = self._device_parse(self.cfg["device"]["preprocess"])
+
         #input
         self.input_width = self.cfg["input"]["width"]
         self.input_height = self.cfg["input"]["height"]
@@ -19,6 +22,17 @@ class Config():
         #anchor settings
         self.anchorRatio = self.cfg["anchors"]["ratios"]
         self.anchorScales = self.cfg["anchors"]["scales"]
+
+        #training
+        self.trainingEpoch = self.cfg["training"]["epoch"]
+
+    def _device_parse(self,str):
+        if str == "cuda1":
+            return "cuda:1"
+        elif str == "cuda0":
+            return "cuda:0"
+        else:
+            return " "
 
 cfg = Config("training/config.yaml")
 

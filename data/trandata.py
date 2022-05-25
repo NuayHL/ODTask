@@ -11,7 +11,8 @@ from training.config import cfg
 # need to add logging module to print which kind input is used
 
 preprocess_train = transforms.Compose([
-
+    transforms.Normalize(mean=[0.4223358, 0.44211456, 0.46431773],
+                         std=[0.29363019, 0.28503336, 0.29044453])
 ])
 
 def odgt2coco(filepath, outputname, type):
@@ -129,7 +130,7 @@ def OD_default_collater(data):
     {"imgs":List lenth B, each with np.float32 img
      "anns":List lenth B, each with np.float32 ann}
     '''
-    imgs = torch.stack([torch.from_numpy(np.transpose(preprocess_train(s["img"].astype(np.float32)), (2, 0, 1))).float() for s in data])
+    imgs = torch.stack([preprocess_train(torch.from_numpy(np.transpose(s["img"].astype(np.float32)/255, (2, 0, 1))).float()) for s in data])
     annos = [np.array(s["anns"]).astype(np.float32) for s in data]
 
     return {"imgs":imgs, "anns":annos}
