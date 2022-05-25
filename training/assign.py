@@ -48,12 +48,16 @@ class AnchAssign():
 
             iou_matrix = self.iou(singleAch, imgAnn)
             iou_max_value, iou_max_idx = torch.max(iou_matrix, dim=1)
+            iou_max_value_anns, iou_max_idx_anns = torch.max(iou_matrix, dim=0)
             # negative: 0
             # ignore: -1
             # positive: index+1
             iou_max_value = torch.where(iou_max_value >= 0.5, iou_max_idx.double() + 2.0,iou_max_value)
             iou_max_value = torch.where(iou_max_value < 0.4, 1.0, iou_max_value)
             iou_max_value = torch.where(iou_max_value < 0.5, 0., iou_max_value)
+
+            # Assign at least one anchor to the gt
+            iou_max_value[iou_max_idx_anns] = torch.arange(imgAnn.shape[0]).double().to(self.cfg.pre_device) + 2
             assign_result[ib] = iou_max_value-1
 
         return assign_result

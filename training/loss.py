@@ -82,10 +82,6 @@ class Defaultloss(nn.Module):
             cls_loss.append(cls_loss_ib.sum() / positive_idx_cls.sum())
 
             # bbox loss
-
-            # skip if no bbox matched
-            if total_pbox==0: continue
-
             anch_w_box = self.anch_w[positive_idx_box]
             anch_h_box = self.anch_h[positive_idx_box]
             anch_x_box = self.anch_x[positive_idx_box]
