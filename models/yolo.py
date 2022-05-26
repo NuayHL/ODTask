@@ -12,6 +12,7 @@ from training.loss import Defaultloss
 from training.config import cfg
 from models.nms import NMS
 from data.trandata import load_single_inferencing_img
+from data.eval import Results
 from models.anchor import generateAnchors
 
 anchors_per_grid = len(cfg.anchorRatio) * len(cfg.anchorScales)
@@ -35,7 +36,7 @@ class YOLOv3(nn.Module):
         anchors[:, 3] = anchors[:, 3] - anchors[:, 1]
         anchors[:, 0] = anchors[:, 0] + 0.5 * anchors[:, 2]
         anchors[:, 1] = anchors[:, 1] + 0.5 * anchors[:, 3]
-        self.anchors = anchors
+        self.anchors = anchors.t()
 
     def forward(self,x):
         '''
@@ -51,30 +52,36 @@ class YOLOv3(nn.Module):
 
     def inference(self,x):
         x = load_single_inferencing_img(x)
+        if torch.cuda.is_available():
+            x = x.to(cfg.pre_device)
         result = self.core(x)
         dt = self._result_parse(result).detach()
 
         # restore the predicting bboxes via pre-defined anchors
-        dt[:,2:4,:] = self.anchors[:,2:] * torch.exp(dt[:,2:4,:])
-        dt[:,:2,:] = self.anchors[:,:2] + dt[:,:2,:] * self.anchors[:,2:]
+        dt[:,2:4,:] = self.anchors[2:, :] * torch.exp(dt[:,2:4,:])
+        dt[:,:2,:] = self.anchors[:2, :] + dt[:,:2,:] * self.anchors[2:, :]
         dt = torch.clamp(dt,0)
         dt[:,4:,:] = torch.clamp(dt[:,4:,:],max = 1.)
 
-        posi_idx = torch.ge(dt[:,4,:], cfg.background_threshold)
+        # delete background
+        posi_idx = torch.ge(dt[:,4,:], cfg.background_threshold).long()
         dt = dt[:,:,posi_idx]
 
+        # delete low score
         max_value, max_index = torch.max(dt[:,5:,:], dim = 1)
-        has_object_idx = torch.ge(max_value, cfg.class_threshold)
-        max_value = max_value[:,has_object_idx]
-        max_index = max_index[:,has_object_idx]
-        dt = dt[:,:4,has_object_idx]
+        has_object_idx = torch.ge(max_value, cfg.class_threshold).long()
+        max_value = max_value[:, has_object_idx]
+        max_index = max_index[:, has_object_idx]
+        dt = dt[:, :4, has_object_idx].t()
 
         result_list = []
 
-        for i in range(dt.shape[0]):
-            result_list.append(batched_nms(self._xywh_to_x1y1x2y2(dt[i,:]),
-                                           max_value[i,:], max_index[i, :],
-                                           cfg.nms_threshold))
+        for ib in range(dt.shape[0]):
+            fin_list = batched_nms(self._xywh_to_x1y1x2y2(dt[ib,:]),
+                                           max_value[ib,:], max_index[ib, :],
+                                           cfg.nms_threshold)
+            real_result = Results(dt[ib, :4, fin_list], max_index[ib, fin_list], max_value[ib, fin_list])
+            result_list.append(real_result)
 
         return result_list
 

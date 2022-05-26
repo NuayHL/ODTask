@@ -21,16 +21,13 @@ from training.loss import Defaultloss
 from models.yolo import YOLOv3
 from training.assign import AnchAssign
 from training.config import cfg
+from training.running import model_load_gen
 
-loss = Defaultloss()
-model = YOLOv3(numofclasses=1,istrainig=True).to(cfg.pre_device)
-dataset = CrowdHDataset("CrowdHuman/annotation_train_coco_style.json")
-loader = DataLoader(dataset, batch_size=cfg.batch_size, collate_fn=OD_default_collater)
-for i,batch in enumerate(loader):
-    if i==7:
-        batch["imgs"] = batch["imgs"].to(cfg.pre_device)
-        losses = model(batch)
-        losses.backward()
-        print(losses)
-        break
+img = cv2.imread("img1.jpg")
 
+model = YOLOv3(numofclasses=1).to(cfg.pre_device)
+model = model_load_gen(model, "testing")
+model.eval()
+
+result = model(img)
+print(result.load_bboxes)
