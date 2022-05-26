@@ -135,6 +135,29 @@ def OD_default_collater(data):
 
     return {"imgs":imgs, "anns":annos}
 
+def load_single_inferencing_img(img):
+    '''
+    Used for inferencing one single img
+    :param img:
+        str: file path
+        np.ndarray: W x H x C
+        torch.Tensor: W x H x Ca
+    :return: Input Tensor viewed as batch_size 1
+    '''
+    if isinstance(img,str):
+        img = cv2.imread(img)
+    elif isinstance(img,torch.Tensor):
+        return img
+    elif isinstance(img,np.ndarray):
+        pass
+    else:
+        raise NotImplementedError("Unknown inputType")
+
+    img = (cv2.resize(img, (cfg.input_height, cfg.input_width))).astype(np.float32)/255
+    img = np.transpose(img,(2,0,1))
+    img = preprocess_train(torch.from_numpy(img).float())
+    img = torch.unsqueeze(img, dim=0)
+    return img
 
 if __name__ == '__main__':
     odgt2coco("../CrowdHuman/annotation_val.odgt", "annotation_val_coco_style", "val")

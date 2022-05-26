@@ -3,27 +3,44 @@ from typing import Optional
 import torch
 import torch.nn as nn
 from torch.nn.functional import interpolate
+from torchvision.ops import batched_nms
+import numpy as np
 
 from .backbone import Darknet53
 from .common import conv_batch
 from training.loss import Defaultloss
 from training.config import cfg
 from models.nms import NMS
+from data.trandata import load_single_inferencing_img
+from models.anchor import generateAnchors
 
 anchors_per_grid = len(cfg.anchorRatio) * len(cfg.anchorScales)
 
 class YOLOv3(nn.Module):
-    def __init__(self, numofclasses=2, ioutype="iou", loss=Defaultloss(), nms=NMS(), istrainig=False):
+    def __init__(self, numofclasses=2, ioutype="iou", loss=Defaultloss(), nms=NMS(), anchors = generateAnchors(singleBatch=True),istrainig=False):
         super(YOLOv3, self).__init__()
         self.numofclasses = numofclasses
         self.core = Yolov3_core(numofclasses)
         self.loss = loss
         self.nms = nms
+        if isinstance(anchors, np.ndarray):
+            anchors = torch.from_numpy(anchors)
+        self._pre_anchor(anchors)
         self.istraining = istrainig
+
+    def _pre_anchor(self, anchors):
+        if torch.cuda.is_available():
+            anchors =  anchors.to(cfg.pre_device)
+        anchors[:, 2] = anchors[:, 2] - anchors[:, 0]
+        anchors[:, 3] = anchors[:, 3] - anchors[:, 1]
+        anchors[:, 0] = anchors[:, 0] + 0.5 * anchors[:, 2]
+        anchors[:, 1] = anchors[:, 1] + 0.5 * anchors[:, 3]
+        self.anchors = anchors
+
     def forward(self,x):
         '''
         when training, x: tuple(img(Tensor),annos)
-        when inferencing, x:
+        when inferencing, x: imgs(Tensor)
         '''
         if not self.istraining:
             return self.inference(x)
@@ -33,8 +50,33 @@ class YOLOv3(nn.Module):
             return self.cal_loss(result,anno)
 
     def inference(self,x):
-        inputtensor = self.core(x)
-        return self.nms(inputtensor)
+        x = load_single_inferencing_img(x)
+        result = self.core(x)
+        dt = self._result_parse(result).detach()
+
+        # restore the predicting bboxes via pre-defined anchors
+        dt[:,2:4,:] = self.anchors[:,2:] * torch.exp(dt[:,2:4,:])
+        dt[:,:2,:] = self.anchors[:,:2] + dt[:,:2,:] * self.anchors[:,2:]
+        dt = torch.clamp(dt,0)
+        dt[:,4:,:] = torch.clamp(dt[:,4:,:],max = 1.)
+
+        posi_idx = torch.ge(dt[:,4,:], cfg.background_threshold)
+        dt = dt[:,:,posi_idx]
+
+        max_value, max_index = torch.max(dt[:,5:,:], dim = 1)
+        has_object_idx = torch.ge(max_value, cfg.class_threshold)
+        max_value = max_value[:,has_object_idx]
+        max_index = max_index[:,has_object_idx]
+        dt = dt[:,:4,has_object_idx]
+
+        result_list = []
+
+        for i in range(dt.shape[0]):
+            result_list.append(batched_nms(self._xywh_to_x1y1x2y2(dt[i,:]),
+                                           max_value[i,:], max_index[i, :],
+                                           cfg.nms_threshold))
+
+        return result_list
 
     def cal_loss(self,result,anno):
         result = self._result_parse(result)
@@ -53,6 +95,12 @@ class YOLOv3(nn.Module):
             split = torch.cat(split,dim=2)
             out = torch.cat((out,split),dim=2)
         return out
+
+    def _xywh_to_x1y1x2y2(self,input):
+        input[:, 0] = input[:,0] - 0.5 * input[:,2]
+        input[:, 1] = input[:,1] - 0.5 * input[:,3]
+        input[:, 2] = input[:,0] + input[:,2]
+        input[:, 3] = input[:,1] + input[:,3]
 
 class Yolov3_core(nn.Module):
     def __init__(self, numofclasses=2, backbone=Darknet53):

@@ -17,7 +17,7 @@ class Config():
         #assign cfg
         self.assignType = self.cfg["assign_cfg"]["assignType"]
         self.iouType = self.cfg["assign_cfg"]["ioutype"]
-        self.threshold = self.cfg["assign_cfg"]["threshold"]
+        self.assign_threshold = self.cfg["assign_cfg"]["threshold"]
 
         #anchor settings
         self.anchorRatio = self.cfg["anchors"]["ratios"]
@@ -26,13 +26,20 @@ class Config():
         #training
         self.trainingEpoch = self.cfg["training"]["epoch"]
 
+        #inference
+        self.background_threshold = self.cfg["inference"]["background_threshold"]
+        self.class_threshold = self.cfg["inference"]["class_threshold"]
+        self.nms_threshold = self.cfg["inference"]["nms_threshold"]
+
     def _device_parse(self,str):
         if str == "cuda1":
             return "cuda:1"
         elif str == "cuda0":
             return "cuda:0"
+        elif str == "cuda":
+            return str
         else:
-            return " "
+            return ""
 
 cfg = Config("training/config.yaml")
 

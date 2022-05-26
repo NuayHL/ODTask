@@ -18,3 +18,7 @@ anchors:
 
 training:
  epoch : 10
+
+inference:
+ background_threshold = 0.5
+ class_threshold = 0.5

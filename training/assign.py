@@ -15,7 +15,7 @@ class AnchAssign():
         self.anchs_len = anchors.shape[1]
         self.assignType = _cfg.assignType
         self.iou = IOU(ioutype=_cfg.iouType, gt_type='x1y1wh')
-        self.threshold_iou = _cfg.threshold
+        self.threshold_iou = _cfg.assign_threshold
     def assign(self,gt):
         '''
         using batch_sized data input

@@ -33,9 +33,22 @@ class IOU(nn.Module):
     def _transfer(self,dt,gt):
         if self.dt_type == "x1y1wh":
             dt = self._x1y1wh_to_x1y1x2y2(dt)
+        elif self.dt_type == "xywh":
+            dt = self._xywh_to_x1y1x2y2(dt)
+        elif self.dt_type == "x1y1x2y2":
+            pass
+        else:
+            raise NotImplementedError("Unknown inputType")
 
         if self.gt_type == "x1y1wh":
             gt = self._x1y1wh_to_x1y1x2y2(gt)
+        elif self.gt_type == "xywh":
+            gt = self._xywh_to_x1y1x2y2(gt)
+        elif self.gt_type == "x1y1x2y2":
+            pass
+        else:
+            raise NotImplementedError("Unknown gtType")
+
         return dt, gt
 
     def _iou_a(self,a, b):
@@ -92,6 +105,11 @@ class IOU(nn.Module):
         input[:, 3] = input[:, 1] + input[:, 3]
         return input
 
+    def _xywh_to_x1y1x2y2(self,input):
+        input[:, 0] = input[:,0] - 0.5 * input[:,2]
+        input[:, 1] = input[:,1] - 0.5 * input[:,3]
+        input[:, 2] = input[:,0] + input[:,2]
+        input[:, 3] = input[:,1] + input[:,3]
 
 
 
