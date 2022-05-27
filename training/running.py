@@ -15,12 +15,14 @@ def model_load_gen(model:nn.Module, filename, path="models/yolov3_pth"):
 
 def training(model:nn.Module, loader:DataLoader, optimizer=None, epoch=cfg.trainingEpoch):
     if optimizer==None:
-        optimizer = optim.Adam(model.parameters())
+        optimizer = optim.Adam(model.parameters(), lr=1e-5)
 
     model.train()
     lenepoch = len(loader)
 
     for i in range(epoch):
+        if (i+1)%5 == 0:
+            model_save_gen(model,"20E_4B_640*800:E"+str(i+1))
         for idx, batch in enumerate(loader):
             batch["imgs"] = batch["imgs"].to(cfg.pre_device)
             optimizer.zero_grad()
