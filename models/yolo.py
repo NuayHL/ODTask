@@ -57,30 +57,36 @@ class YOLOv3(nn.Module):
         result = self.core(x)
         dt = self._result_parse(result).detach()
 
+        anchors = torch.tile(self.anchors, (dt.shape[0], 1, 1))
+
         # restore the predicting bboxes via pre-defined anchors
-        dt[:,2:4,:] = self.anchors[2:, :] * torch.exp(dt[:,2:4,:])
-        dt[:,:2,:] = self.anchors[:2, :] + dt[:,:2,:] * self.anchors[2:, :]
-        dt = torch.clamp(dt,0)
+        dt[:,2:4,:] = anchors[:,2:, :] * torch.exp(dt[:,2:4,:])
+        dt[:,:2,:] = anchors[:, 2, :] + dt[:,:2,:] * anchors[:,2:, :]
+        #dt[:, 4:, :] = -dt[:, 4:, :]
+        dt = torch.clamp(dt,min = 0)
         dt[:,4:,:] = torch.clamp(dt[:,4:,:],max = 1.)
 
-        # delete background
-        posi_idx = torch.ge(dt[:,4,:], cfg.background_threshold).long()
-        dt = dt[:,:,posi_idx]
-
-        # delete low score
-        max_value, max_index = torch.max(dt[:,5:,:], dim = 1)
-        has_object_idx = torch.ge(max_value, cfg.class_threshold).long()
-        max_value = max_value[:, has_object_idx]
-        max_index = max_index[:, has_object_idx]
-        dt = dt[:, :4, has_object_idx].t()
-
         result_list = []
-
+        posi_idx = torch.ge(dt[:, 4, :], cfg.background_threshold)
         for ib in range(dt.shape[0]):
-            fin_list = batched_nms(self._xywh_to_x1y1x2y2(dt[ib,:]),
-                                           max_value[ib,:], max_index[ib, :],
-                                           cfg.nms_threshold)
-            real_result = Results(dt[ib, :4, fin_list], max_index[ib, fin_list], max_value[ib, fin_list])
+            # delete background
+            dt_ib = dt[ib,:,posi_idx[ib]]
+
+            # delete low score
+            max_value, max_index = torch.max(dt_ib[5:,:], dim = 0)
+            has_object_idx = torch.ge(max_value, cfg.class_threshold)
+            sum1 = has_object_idx.sum()
+            max_value = max_value[has_object_idx]
+            max_index = max_index[has_object_idx]
+
+            dt_ib = dt_ib[:4, has_object_idx].t()
+
+            if dt_ib.shape[0] == 0:
+                real_result = None
+            else:
+                dt_ib = self._xywh_to_x1y1x2y2(dt_ib)
+                fin_list = batched_nms(dt_ib, max_value, max_index, cfg.nms_threshold)
+                real_result = Results(dt_ib[fin_list], max_index[fin_list], max_value[fin_list])
             result_list.append(real_result)
 
         return result_list

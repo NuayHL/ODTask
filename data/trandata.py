@@ -103,7 +103,7 @@ class CrowdHDataset(Dataset):
         fx = cfg.input_height / float(img[0]["height"])
         fy = cfg.input_width / float(img[0]["width"])
         img = cv2.imread(self.imgPath + img[0]["file_name"] + ".jpg")
-        img = cv2.resize(img, (cfg.input_height, cfg.input_width))
+        img = cv2.resize(img.astype(np.float32), (cfg.input_height, cfg.input_width))
 
         anns = self.annotations.getAnnIds(idx)
         anns = self.annotations.loadAnns(anns)
@@ -130,7 +130,7 @@ def OD_default_collater(data):
     {"imgs":List lenth B, each with np.float32 img
      "anns":List lenth B, each with np.float32 ann}
     '''
-    imgs = torch.stack([preprocess_train(torch.from_numpy(np.transpose(s["img"].astype(np.float32)/255, (2, 0, 1))).float()) for s in data])
+    imgs = torch.stack([preprocess_train(torch.from_numpy(np.transpose(s["img"]/255, (2, 0, 1))).float()) for s in data])
     annos = [np.array(s["anns"]).astype(np.float32) for s in data]
 
     return {"imgs":imgs, "anns":annos}
@@ -153,7 +153,7 @@ def load_single_inferencing_img(img):
     else:
         raise NotImplementedError("Unknown inputType")
 
-    img = (cv2.resize(img, (cfg.input_height, cfg.input_width))).astype(np.float32)/255
+    img = (cv2.resize(img.astype(np.float32), (cfg.input_height, cfg.input_width)))/255
     img = np.transpose(img,(2,0,1))
     img = preprocess_train(torch.from_numpy(img).float())
     img = torch.unsqueeze(img, dim=0)

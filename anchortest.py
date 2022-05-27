@@ -23,11 +23,14 @@ from training.assign import AnchAssign
 from training.config import cfg
 from training.running import model_load_gen
 
-img = cv2.imread("img1.jpg")
+img = cv2.imread("img2.jpg")
 
 model = YOLOv3(numofclasses=1).to(cfg.pre_device)
 model = model_load_gen(model, "testing")
 model.eval()
 
 result = model(img)
-print(result.load_bboxes)
+if result[0] == None:
+    print("GG!")
+else:
+    print(result[0].load_bboxes)
