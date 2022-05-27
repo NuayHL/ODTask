@@ -41,5 +41,5 @@ class Config():
         else:
             return ""
 
-cfg = Config("training/config.yaml")
+cfg = Config("training/cfg/config.yaml")
 

@@ -1,9 +1,18 @@
-import torch
-import numpy as np
-from training.assign import AnchAssign
+from multiprocessing import Process
+import os
 
-gt1 = np.array([[34,45,78,656],[100,80,200,234]],dtype=np.float32)
-gt = [gt1,gt1]
-test = AnchAssign()
-output = test.assign(gt)
+def info(title):
+    print(title)
+    print('module name:', __name__)
+    print('parent process:', os.getppid())
+    print('process id:', os.getpid())
 
+def f(name):
+    info('function f')
+    print('hello', name)
+
+if __name__ == '__main__':
+    info('main line')
+    p = Process(target=f, args=('bob',))
+    p.start()
+    p.join()
