@@ -11,9 +11,12 @@ from .common import conv_batch
 from training.loss import Defaultloss
 from training.config import cfg
 from models.nms import NMS
+from models.anchor import generateAnchors
 from data.trandata import load_single_inferencing_img
 from data.eval import Results
-from models.anchor import generateAnchors
+
+from torch.distributed import get_rank, is_initialized
+
 
 anchors_per_grid = len(cfg.anchorRatio) * len(cfg.anchorScales)
 
@@ -101,7 +104,11 @@ class YOLOv3(nn.Module):
         '''
         out = torch.zeros((triple[0].shape[0], int(5 + self.numofclasses),0))
         if torch.cuda.is_available():
-            out = out.to(cfg.pre_device)
+            # if using DDP
+            if is_initialized():
+                out = out.to(get_rank())
+            else:
+                out = out.to(cfg.pre_device)
         for fp in triple:
             fp = torch.flatten(fp,start_dim=2)
             split = torch.split(fp,int(fp.shape[1]/anchors_per_grid),dim=1)

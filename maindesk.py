@@ -18,10 +18,8 @@ from training.assign import AnchAssign
 from training.config import cfg
 import torch.distributed as dist
 
-
 assigns = AnchAssign()
 model = YOLOv3(numofclasses=1,istrainig=True)
-model = run.model_load_gen(model, "testing")
 model = model.to(cfg.pre_device)
 
 dataset = CrowdHDataset("CrowdHuman/annotation_train_coco_style.json")

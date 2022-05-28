@@ -3,7 +3,6 @@ import os
 print(os.getcwd())
 os.environ["CUDA_VISIBLE_DEVICES"]  = '0,1'
 
-
 '''
 {"imgs":List lenth B, each with np.float32 img
 "anns":List lenth B, each with np.float32 ann}
@@ -23,10 +22,10 @@ from training.assign import AnchAssign
 from training.config import cfg
 from training.running import model_load_gen
 
-img = cv2.imread("img2.jpg")
+img = cv2.imread("img1.jpg")
 
 model = YOLOv3(numofclasses=1).to(cfg.pre_device)
-model = model_load_gen(model, "testing")
+model = model_load_gen(model, "20E_4B_640*800:E15")
 model.eval()
 
 result = model(img)

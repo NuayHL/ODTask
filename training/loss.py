@@ -5,6 +5,7 @@ from torch.nn.functional import one_hot
 from training.config import cfg
 from training.assign import AnchAssign
 from models.anchor import generateAnchors
+from torch.distributed import is_initialized, get_rank
 
 
 class Defaultloss(nn.Module):
@@ -19,11 +20,15 @@ class Defaultloss(nn.Module):
         if isinstance(anchors, np.ndarray):
             anchors = torch.from_numpy(anchors)
         self.anchs = anchors
+        if is_initialized():
+            self.device = get_rank()
+        else:
+            self.device = cfg.pre_device
         self._pre_anchor()
 
     def _pre_anchor(self):
         if torch.cuda.is_available():
-            self.anchs = self.anchs.to(cfg.pre_device)
+            self.anchs = self.anchs.to(self.device)
         self.anch_w = self.anchs[:, 2] - self.anchs[:, 0]
         self.anch_h = self.anchs[:, 3] - self.anchs[:, 1]
         self.anch_x = self.anchs[:, 0] + 0.5 * self.anch_w
@@ -44,7 +49,7 @@ class Defaultloss(nn.Module):
         assign_result = self.label_assignment.assign(gt)
 
         if torch.cuda.is_available():
-            dt = dt.to(cfg.pre_device)
+            dt = dt.to(self.device)
 
         dt_class_md = torch.clamp(dt[:, 4:, :], 1e-4, 1.0 - 1e-4).clone()
 
@@ -61,7 +66,7 @@ class Defaultloss(nn.Module):
             imgAnn = gt[ib]
             imgAnn = torch.from_numpy(imgAnn).float()
             if torch.cuda.is_available():
-                imgAnn = imgAnn.to(cfg.pre_device)
+                imgAnn = imgAnn.to(self.device)
 
             assign_result_box = assign_result[ib][positive_idx_box].long()-1
             assigned_anns = imgAnn[assign_result_box]
@@ -70,7 +75,7 @@ class Defaultloss(nn.Module):
             assign_result_cal = torch.clamp(assign_result[ib][positive_idx_cls], 0., 1.)
             one_hot_bed = torch.zeros((assign_result.shape[1], self.classes), dtype=torch.int64)
             if torch.cuda.is_available():
-                one_hot_bed = one_hot_bed.to(cfg.pre_device)
+                one_hot_bed = one_hot_bed.to(self.device)
             one_hot_bed[positive_idx_box] = one_hot(assigned_anns[:, 4].long() - 1,
                                                     num_classes=self.classes)
             assign_result_cal = torch.cat((torch.unsqueeze(assign_result_cal, dim=1),

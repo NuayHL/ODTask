@@ -5,6 +5,8 @@ from .iou import IOU
 from .config import cfg
 from models.anchor import generateAnchors
 
+from torch.distributed import get_rank, is_initialized
+
 class AnchAssign():
     def __init__(self, anchors=generateAnchors(), _cfg = cfg):
         if isinstance(_cfg, str):
@@ -16,6 +18,12 @@ class AnchAssign():
         self.assignType = _cfg.assignType
         self.iou = IOU(ioutype=_cfg.iouType, gt_type='x1y1wh')
         self.threshold_iou = _cfg.assign_threshold
+
+        if is_initialized():
+            self.device = get_rank()
+        else:
+            self.device = cfg.pre_device
+
     def assign(self,gt):
         '''
         using batch_sized data input
@@ -34,17 +42,17 @@ class AnchAssign():
         singleAch = self.anchs[0,:]
         singleAch = torch.from_numpy(singleAch).double()
         if torch.cuda.is_available():
-            singleAch = singleAch.to(self.cfg.pre_device)
+            singleAch = singleAch.to(self.device)
 
         output_size = self.anchs.shape[:2]
         assign_result = torch.zeros(tuple(output_size))
         if torch.cuda.is_available():
-            assign_result = assign_result.to(self.cfg.pre_device)
+            assign_result = assign_result.to(self.device)
         for ib in range(self.cfg.batch_size):
             imgAnn = gt[ib][:,:4]
             imgAnn = torch.from_numpy(imgAnn).double()
             if torch.cuda.is_available():
-                imgAnn = imgAnn.to(self.cfg.pre_device)
+                imgAnn = imgAnn.to(self.device)
 
             iou_matrix = self.iou(singleAch, imgAnn)
             iou_max_value, iou_max_idx = torch.max(iou_matrix, dim=1)
@@ -57,7 +65,7 @@ class AnchAssign():
             iou_max_value = torch.where(iou_max_value < 0.5, 0., iou_max_value)
 
             # Assign at least one anchor to the gt
-            iou_max_value[iou_max_idx_anns] = torch.arange(imgAnn.shape[0]).double().to(self.cfg.pre_device) + 2
+            iou_max_value[iou_max_idx_anns] = torch.arange(imgAnn.shape[0]).double().to(self.device) + 2
             assign_result[ib] = iou_max_value-1
 
         return assign_result
