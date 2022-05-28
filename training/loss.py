@@ -60,9 +60,6 @@ class Defaultloss(nn.Module):
             positive_idx_box = torch.ge(assign_result[ib] - 1.0, -0.1)
             # the assigned ones
 
-            total_pcls = positive_idx_cls.sum()
-            total_pbox = positive_idx_box.sum()
-
             imgAnn = gt[ib]
             imgAnn = torch.from_numpy(imgAnn).float()
             if torch.cuda.is_available():

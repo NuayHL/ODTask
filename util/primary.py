@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 from torch import nn
+from training.config import Config
 #小工具
 
 def printImg(img, title: str='', type = 0):
@@ -20,6 +21,12 @@ def numofParameters(model: nn.Module ):
     for par in model.parameters():
         nump += par.numel()
     return nump
+
+def cfgtoStr(cfg:Config):
+    name = str(cfg.trainingEpoch)+"E_"+str(cfg.batch_size)+"B_"+str(cfg.input_width)+ \
+           "*"+str(cfg.input_height)
+    return name
+
 
 
 

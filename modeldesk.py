@@ -1,18 +1,5 @@
-from multiprocessing import Process
-import os
+from util.mylogger import mylogger
 
-def info(title):
-    print(title)
-    print('module name:', __name__)
-    print('parent process:', os.getppid())
-    print('process id:', os.getpid())
+a = mylogger("test", rank=0)
 
-def f(name):
-    info('function f')
-    print('hello', name)
-
-if __name__ == '__main__':
-    info('main line')
-    p = Process(target=f, args=('bob',))
-    p.start()
-    p.join()
+a.info("test for first time")

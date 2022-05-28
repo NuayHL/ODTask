@@ -17,7 +17,7 @@ anchors:
  scales : [0.75,1]
 
 training:
- epoch : 20
+ epoch : 70
 
 inference:
  background_threshold : 0.5
