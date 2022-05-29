@@ -6,7 +6,7 @@ from torch.nn.functional import interpolate
 from torchvision.ops import batched_nms
 import numpy as np
 
-from .backbone import Darknet53
+from .darknet53 import Darknet53
 from .common import conv_batch
 from training.loss import Defaultloss
 from training.config import cfg

@@ -1,77 +1,56 @@
-#https://github.com/developer0hye/PyTorch-Darknet53/blob/master/model.py
-import torch
-from torch import nn
+import torch.nn as nn
 
-def conv_batch(in_num, out_num, kernel_size=3, padding=1, stride=1):
-    return nn.Sequential(
-        nn.Conv2d(in_num, out_num, kernel_size=kernel_size, stride=stride, padding=padding, bias=False),
-        nn.BatchNorm2d(out_num),
-        nn.LeakyReLU())
-
-
-# Residual block
-class DarkResidualBlock(nn.Module):
-    def __init__(self, in_channels):
-        super(DarkResidualBlock, self).__init__()
-
-        reduced_channels = int(in_channels/2)
-
-        self.layer1 = conv_batch(in_channels, reduced_channels, kernel_size=1, padding=0)
-        self.layer2 = conv_batch(reduced_channels, in_channels)
-
-    def forward(self, x):
-        residual = x
-
-        out = self.layer1(x)
-        out = self.layer2(out)
-        out += residual
-        return out
-
+from .common import conv_batch
+from .common import DarkResidualBlock
+from .common import make_layers
 
 class Darknet53(nn.Module):
-    def __init__(self, block, num_classes):
+    def __init__(self, numofclasses, res_block=DarkResidualBlock):
         super(Darknet53, self).__init__()
-
-        self.num_classes = num_classes
+        self.numofclasses = numofclasses
 
         self.conv1 = conv_batch(3, 32)
         self.conv2 = conv_batch(32, 64, stride=2)
-        self.residual_block1 = self.make_layer(block, in_channels=64, num_blocks=1)
+        self.residual_block1 = make_layers(1, res_block, 64)
         self.conv3 = conv_batch(64, 128, stride=2)
-        self.residual_block2 = self.make_layer(block, in_channels=128, num_blocks=2)
+        self.residual_block2 = make_layers(2, res_block, 128)
         self.conv4 = conv_batch(128, 256, stride=2)
-        self.residual_block3 = self.make_layer(block, in_channels=256, num_blocks=8)
+        self.residual_block3 = make_layers(8, res_block, 256)
         self.conv5 = conv_batch(256, 512, stride=2)
-        self.residual_block4 = self.make_layer(block, in_channels=512, num_blocks=8)
+        self.residual_block4 = make_layers(8, res_block, 512)
         self.conv6 = conv_batch(512, 1024, stride=2)
-        self.residual_block5 = self.make_layer(block, in_channels=1024, num_blocks=4)
-        self.global_avg_pool = nn.AdaptiveAvgPool2d((1, 1))
-        self.fc = nn.Linear(1024, self.num_classes)
+        self.residual_block5 = make_layers(4, res_block, 1024)
+        self.avg_pooling = nn.AdaptiveAvgPool2d((1,1))
+        self.fc = nn.Linear(1024, self.numofclasses)
 
-    def forward(self, x):
-        out = self.conv1(x)
-        out = self.conv2(out)
-        out = self.residual_block1(out)
-        out = self.conv3(out)
-        out = self.residual_block2(out)
-        out = self.conv4(out)
-        out = self.residual_block3(out)
-        out = self.conv5(out)
-        out = self.residual_block4(out)
-        out = self.conv6(out)
-        out = self.residual_block5(out)
-        out = self.global_avg_pool(out)
-        out = out.view(-1, 1024)
-        out = self.fc(out)
+    def forward(self,x):
+        x = self.conv1(x)
+        # w 32
+        x = self.residual_block1(self.conv2(x))
+        # w/2 64
+        x = self.residual_block2(self.conv3(x))
+        # w/4 128
+        x = self.residual_block3(self.conv4(x))
+        # w/8 256
+        x = self.residual_block4(self.conv5(x))
+        # w/16 512
+        x = self.residual_block5(self.conv6(x))
+        # w/32 1024
+        x = self.avg_pooling(x)
+        x = x.view(-1, 1024)
+        x = self.fc(x)
+        return x
 
-        return out
+    def yolo_extract(self,x):
+        '''
+        w = w/8
+        return w*w*256 (w/2)*(w/2)*512 (w/4)*(w/4)*1024
+        '''
+        x = self.conv1(x)
+        x = self.residual_block1(self.conv2(x))
+        x = self.residual_block2(self.conv3(x))
+        f1 = self.residual_block3(self.conv4(x))  #256
+        f2 = self.residual_block4(self.conv5(f1)) #512
+        f3 = self.residual_block5(self.conv6(f2)) #1024
+        return f3, f2, f1
 
-    def make_layer(self, block, in_channels, num_blocks):
-        layers = []
-        for i in range(0, num_blocks):
-            layers.append(block(in_channels))
-        return nn.Sequential(*layers)
-
-
-def darknet53(num_classes):
-    return Darknet53(DarkResidualBlock, num_classes)

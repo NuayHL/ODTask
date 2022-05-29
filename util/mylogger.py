@@ -1,7 +1,7 @@
 import datetime
 import logging
 
-def mylogger(name: str, rank=None):
+def mylogger(name: str, rank=0):
     logger = logging.getLogger(name)
     logger.setLevel("INFO")
     logger.propagate = False
@@ -20,6 +20,7 @@ def mylogger(name: str, rank=None):
     fh.setFormatter(formatter)
     logger.addHandler(fh)
 
+    # if the rank is 0, then also print the training process on the console
     if rank == 0:
         ch = logging.StreamHandler()
         ch.setLevel(logging.DEBUG)
