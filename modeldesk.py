@@ -2,7 +2,7 @@ import torch
 from models.resnet import resnet50
 from models.darknet53 import Darknet53
 
-#pre_trained_dict = torch.load("models/yolov3_pth/resnet18-5c106cde.pth")
+#pre_trained_dict = torch.load("models/model_pth/resnet18-5c106cde.pth")
 
 model = resnet50(1,pretrained=True).cuda()
 

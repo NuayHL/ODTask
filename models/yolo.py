@@ -23,12 +23,12 @@ anchors_per_grid = len(cfg.anchorRatio) * len(cfg.anchorScales)
 
 class YOLOv3(nn.Module):
     def __init__(self, numofclasses=2, ioutype="iou", loss=Defaultloss(), nms=NMS(),
-                 anchors = generateAnchors(singleBatch=True),istrainig=False, backbone=None):
+                 anchors = generateAnchors(singleBatch=True),istrainig=False, backbone=None, **kwargs):
         super(YOLOv3, self).__init__()
         if backbone == None:
             backbone = Darknet53
         self.numofclasses = numofclasses
-        self.core = Yolov3_core(numofclasses, backbone=backbone)
+        self.core = Yolov3_core(numofclasses, backbone=backbone, **kwargs)
         self.loss = loss
         self.nms = nms
         if isinstance(anchors, np.ndarray):
@@ -127,7 +127,7 @@ class YOLOv3(nn.Module):
         input[:, 3] = input[:,1] + input[:,3]
 
 class Yolov3_core(nn.Module):
-    def __init__(self, numofclasses=2, backbone=Darknet53):
+    def __init__(self, numofclasses=2, backbone=Darknet53, **kwargs):
         super(Yolov3_core, self).__init__()
         self.yolodetector1 = self.yolo_block(512)
         self.to_featuremap1 = nn.Sequential(
@@ -152,7 +152,7 @@ class Yolov3_core(nn.Module):
                 m.weight.data.fill_(1)
                 m.bias.data.zero_()
 
-        self.backbone = backbone(numofclasses)
+        self.backbone = backbone(numofclasses, **kwargs)
 
     def yolo_block(self, channel, ic: Optional[int]=None):
         if not ic:

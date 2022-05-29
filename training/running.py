@@ -9,10 +9,10 @@ import torch.optim.lr_scheduler as sche
 from torch.distributed import is_initialized, get_rank
 from util.primary import DDPsavetoNormal
 
-def model_save_gen(model:nn.Module, filename, path="models/yolov3_pth"):
+def model_save_gen(model:nn.Module, filename, path="models/model_pth"):
     torch.save({"GEN":model.state_dict()}, path+"/"+filename+".pt")
 
-def model_load_gen(model:nn.Module, filename, path="models/yolov3_pth", parallel_trained=False):
+def model_load_gen(model:nn.Module, filename, path="models/model_pth", parallel_trained=False):
     state_dict = torch.load(path+"/"+filename+".pt")
     if parallel_trained:
         state_dict = DDPsavetoNormal(state_dict["GEN"])

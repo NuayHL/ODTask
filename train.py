@@ -5,6 +5,7 @@ import torch.distributed as dist
 import torch.multiprocessing as mp
 from torch.nn.parallel import DistributedDataParallel as DDP
 from models.yolo import YOLOv3
+from models.resnet import resnet50
 
 from data.trandata import CrowdHDataset, OD_default_collater
 from torch.utils.data import DataLoader
@@ -18,11 +19,11 @@ def training_process(rank, world_size):
 
     loader = DataLoader(dataset, batch_size=cfg.batch_size, sampler=ddsampler, collate_fn=OD_default_collater)
 
-    model = YOLOv3(numofclasses=1, istrainig=True)
+    model = YOLOv3(numofclasses=1, istrainig=True, backbone=resnet50, pretrained=True)
     model = torch.nn.SyncBatchNorm.convert_sync_batchnorm(model).to(rank)
     ddp_model = DDP(model, device_ids=[rank], output_device=rank, find_unused_parameters=True)
 
-    run.training(ddp_model, loader)
+    run.training(ddp_model, loader, logname="resnet50")
 
 if __name__ == "__main__":
     os.environ["MASTER_ADDR"] = "localhost"
