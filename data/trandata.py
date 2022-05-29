@@ -123,6 +123,18 @@ class CrowdHDataset(Dataset):
         bbox.append(1)
         return bbox
 
+class CocoDataset(Dataset):
+    def __init__(self):
+        super(CocoDataset, self).__init__()
+        pass
+
+    def __getitem__(self, item):
+        pass
+
+    def __len__(self):
+        pass
+
+
 def OD_default_collater(data):
     '''
     used in torch.utils.data.DataLaoder as collater_fn
