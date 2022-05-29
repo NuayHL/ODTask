@@ -21,7 +21,7 @@ def training_process(rank, world_size):
 
     model = YOLOv3(numofclasses=1, istrainig=True, backbone=resnet50, pretrained=True)
     model = torch.nn.SyncBatchNorm.convert_sync_batchnorm(model).to(rank)
-    ddp_model = DDP(model, device_ids=[rank], output_device=rank, find_unused_parameters=True)
+    ddp_model = DDP(model, device_ids=[rank], output_device=rank)
 
     run.training(ddp_model, loader, logname="resnet50")
 
