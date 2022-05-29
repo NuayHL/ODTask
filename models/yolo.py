@@ -1,6 +1,7 @@
 from typing import Optional
 
 import torch
+import math
 import torch.nn as nn
 from torch.nn.functional import interpolate
 from torchvision.ops import batched_nms
@@ -21,10 +22,13 @@ from torch.distributed import get_rank, is_initialized
 anchors_per_grid = len(cfg.anchorRatio) * len(cfg.anchorScales)
 
 class YOLOv3(nn.Module):
-    def __init__(self, numofclasses=2, ioutype="iou", loss=Defaultloss(), nms=NMS(), anchors = generateAnchors(singleBatch=True),istrainig=False):
+    def __init__(self, numofclasses=2, ioutype="iou", loss=Defaultloss(), nms=NMS(),
+                 anchors = generateAnchors(singleBatch=True),istrainig=False, backbone=None):
         super(YOLOv3, self).__init__()
+        if backbone == None:
+            backbone = Darknet53
         self.numofclasses = numofclasses
-        self.core = Yolov3_core(numofclasses)
+        self.core = Yolov3_core(numofclasses, backbone=backbone)
         self.loss = loss
         self.nms = nms
         if isinstance(anchors, np.ndarray):
@@ -65,7 +69,7 @@ class YOLOv3(nn.Module):
         # restore the predicting bboxes via pre-defined anchors
         dt[:,2:4,:] = anchors[:,2:, :] * torch.exp(dt[:,2:4,:])
         dt[:,:2,:] = anchors[:, 2, :] + dt[:,:2,:] * anchors[:,2:, :]
-        #dt[:, 4:, :] = -dt[:, 4:, :]
+        dt[:, 4:, :] = -dt[:, 4:, :]
         dt = torch.clamp(dt,min = 0)
         dt[:,4:,:] = torch.clamp(dt[:,4:,:],max = 1.)
 
@@ -125,8 +129,6 @@ class YOLOv3(nn.Module):
 class Yolov3_core(nn.Module):
     def __init__(self, numofclasses=2, backbone=Darknet53):
         super(Yolov3_core, self).__init__()
-        self.backbone = backbone(numofclasses)
-        self.extractor = backbone.yolo_extract
         self.yolodetector1 = self.yolo_block(512)
         self.to_featuremap1 = nn.Sequential(
             conv_batch(512, 1024),
@@ -141,6 +143,16 @@ class Yolov3_core(nn.Module):
             conv_batch(256, (1 + 4 + numofclasses) * anchors_per_grid, kernel_size=1, padding=0))
         self.conv1to2 = conv_batch(512, 256, kernel_size=1, padding=0)
         self.conv2to3 = conv_batch(256, 128, kernel_size=1, padding=0)
+
+        for m in self.modules():
+            if isinstance(m, nn.Conv2d):
+                n = m.kernel_size[0] * m.kernel_size[1] * m.out_channels
+                m.weight.data.normal_(0, math.sqrt(2. / n))
+            elif isinstance(m, nn.BatchNorm2d):
+                m.weight.data.fill_(1)
+                m.bias.data.zero_()
+
+        self.backbone = backbone(numofclasses)
 
     def yolo_block(self, channel, ic: Optional[int]=None):
         if not ic:
@@ -157,7 +169,8 @@ class Yolov3_core(nn.Module):
         :param x: BxCxWxH tensor
         :return:
         '''
-        f1, f2, f3 = self.extractor(self.backbone, x)
+        # the extractor is required to generate 3 feature layers
+        f1, f2, f3 = self.backbone.yolo_extract(x)
         f1 = self.yolodetector1(f1)  #large grid
         f1_up = interpolate(self.conv1to2(f1), size=(f2.shape[2],f2.shape[3]))
         f2 = torch.cat((f2,f1_up),1)

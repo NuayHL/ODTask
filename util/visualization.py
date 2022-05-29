@@ -1,4 +1,5 @@
 import cv2
+import matplotlib.pyplot as plt
 
 def _isArrayLike(obj):
     return hasattr(obj, '__iter__') and hasattr(obj, '__len__')
@@ -28,3 +29,23 @@ def show_bbox(img, bboxs=[], type="default",color=[0,0,255],**kwargs):
     cv2.waitKey()
     cv2.destroyAllWindows()
 
+def draw_loss(file_path,name="loss"):
+    with open(file_path,"r") as f:
+        losses = f.readlines()
+        loss_list = []
+        index = []
+        start_idx = 0
+        for i in losses:
+            if "WARNING" in i:
+                continue
+            loss = float(i[(i.rfind(":")+1):])
+            loss_list.append(loss)
+            index.append(start_idx)
+            start_idx += 1
+    fig, ax = plt.subplots()
+    ax.plot(index, loss_list)
+    ax.set(xlabel="Iteration(times)",ylabel="Loss",title="Training Loss for "+file_path)
+    ax.grid()
+
+    fig.savefig(name+".png")
+    plt.show()

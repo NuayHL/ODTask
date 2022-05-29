@@ -1,5 +1,19 @@
-from util.mylogger import mylogger
+import torch
+from models.resnet import resnet50
+from models.darknet53 import Darknet53
 
-a = mylogger("test", rank=0)
+#pre_trained_dict = torch.load("models/yolov3_pth/resnet18-5c106cde.pth")
 
-a.info("test for first time")
+model = resnet50(1,pretrained=True).cuda()
+
+model2 = Darknet53(1).cuda()
+
+x = torch.rand((2,3,640,640)).cuda()
+
+f1,f2,f3 = model.yolo_extract(x)
+
+print(f1.shape, f2.shape, f3.shape)
+
+f1,f2,f3 = model2.yolo_extract(x)
+
+print(f1.shape, f2.shape, f3.shape)

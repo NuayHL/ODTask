@@ -1,4 +1,5 @@
 import torch.nn as nn
+import math
 
 from .common import conv_batch
 from .common import DarkResidualBlock
@@ -22,6 +23,15 @@ class Darknet53(nn.Module):
         self.residual_block5 = make_layers(4, res_block, 1024)
         self.avg_pooling = nn.AdaptiveAvgPool2d((1,1))
         self.fc = nn.Linear(1024, self.numofclasses)
+
+        # initialize parameters
+        for m in self.modules():
+            if isinstance(m, nn.Conv2d):
+                n = m.kernel_size[0] * m.kernel_size[1] * m.out_channels
+                m.weight.data.normal_(0, math.sqrt(2. / n))
+            elif isinstance(m, nn.BatchNorm2d):
+                m.weight.data.fill_(1)
+                m.bias.data.zero_()
 
     def forward(self,x):
         x = self.conv1(x)

@@ -25,7 +25,7 @@ from training.running import model_load_gen
 img = cv2.imread("img1.jpg")
 
 model = YOLOv3(numofclasses=1).to(cfg.pre_device)
-model = model_load_gen(model, "20E_4B_640*800:E15")
+model = model_load_gen(model, "70E_4B_800*1024:E5",parallel_trained=True)
 model.eval()
 
 result = model(img)
