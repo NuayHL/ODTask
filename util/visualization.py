@@ -33,16 +33,13 @@ def show_bbox(img, bboxs=[], type="default",color=[0,0,255],**kwargs):
         elif type == "crowdhuman": a, b = (bbox[0],bbox[1]),(bbox[0]+bbox[2],bbox[1]+bbox[3])
         else: a, b = (bbox[0]-int(bbox[2]/2),bbox[1]-int(bbox[3]/2)),(bbox[0]+int(bbox[2]/2),bbox[1]+int(bbox[3]/2))
         cv2.rectangle(img,a,b,color)
-    cv2.imshow("",img)
-    cv2.waitKey()
-    cv2.destroyAllWindows()
+    printImg(img)
 
 def dataset_inspection(dataset, imgid):
     sample = dataset[imgid]
     img = sample["img"].astype(np.int32)
     anns = sample["anns"]
-    show_bbox(img, anns, type="diagonal")
-    cv2.groupRectangles()
+    show_bbox(img, anns, type="crowdhuman")
 
 def draw_loss(file_name,outputImgName="loss",logpath="trainingLog",savepath="trainingLog/lossV"):
     with open(logpath+"/"+file_name,"r") as f:

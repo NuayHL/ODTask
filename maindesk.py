@@ -17,12 +17,14 @@ from torch.utils.data import DataLoader
 import training.running as run
 
 from models.yolo import YOLOv3
+from models.resnet import resnet50
 from training.assign import AnchAssign
 from training.config import cfg
 import torch.distributed as dist
 
 
 model = YOLOv3(numofclasses=1,istrainig=True)
+model = YOLOv3(numofclasses=1,istrainig=True, backbone=resnet50)
 model = model.to(cfg.pre_device)
 
 dataset = CrowdHDataset("CrowdHuman/annotation_train_coco_style.json")
