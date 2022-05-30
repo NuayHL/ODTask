@@ -1,8 +1,16 @@
 import cv2
+import numpy as np
 import matplotlib.pyplot as plt
 
 def _isArrayLike(obj):
     return hasattr(obj, '__iter__') and hasattr(obj, '__len__')
+
+def printImg(img, title: str='', type = 0):
+    if type == 0: plt.imshow(img)
+    else: plt.imshow(img, cmap=plt.cm.gray)
+    plt.title(title)
+    plt.axis('off')
+    plt.show()
 
 def show_bbox(img, bboxs=[], type="default",color=[0,0,255],**kwargs):
     '''
@@ -28,6 +36,13 @@ def show_bbox(img, bboxs=[], type="default",color=[0,0,255],**kwargs):
     cv2.imshow("",img)
     cv2.waitKey()
     cv2.destroyAllWindows()
+
+def dataset_inspection(dataset, imgid):
+    sample = dataset[imgid]
+    img = sample["img"].astype(np.int32)
+    anns = sample["anns"]
+    show_bbox(img, anns, type="diagonal")
+    cv2.groupRectangles()
 
 def draw_loss(file_name,outputImgName="loss",logpath="trainingLog",savepath="trainingLog/lossV"):
     with open(logpath+"/"+file_name,"r") as f:

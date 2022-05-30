@@ -13,7 +13,6 @@ class Defaultloss(nn.Module):
     {"imgs":List lenth B, each with np.float32 img
      "anns":List lenth B, each with np.float32 ann}
     '''
-
     def __init__(self, assign_method=AnchAssign, anchors=generateAnchors(singleBatch=True), config = cfg):
         super(Defaultloss, self).__init__()
         if isinstance(config, str):

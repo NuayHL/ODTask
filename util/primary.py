@@ -3,13 +3,6 @@ from torch import nn
 from training.config import Config
 #小工具
 
-def printImg(img, title: str='', type = 0):
-    if type == 0: plt.imshow(img)
-    else: plt.imshow(img, cmap=plt.cm.gray)
-    plt.title(title)
-    plt.axis('off')
-    plt.show()
-
 def progressbar(percentage, endstr='', barlenth=20):
     if int(percentage)==1: endstr +='\n'
     print('\r[' + '>' * int(percentage * barlenth) +
