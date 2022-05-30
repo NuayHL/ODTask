@@ -29,8 +29,8 @@ def show_bbox(img, bboxs=[], type="default",color=[0,0,255],**kwargs):
     cv2.waitKey()
     cv2.destroyAllWindows()
 
-def draw_loss(file_path,name="loss"):
-    with open(file_path,"r") as f:
+def draw_loss(file_name,outputImgName="loss",logpath="trainingLog",savepath="trainingLog/lossV"):
+    with open(logpath+"/"+file_name,"r") as f:
         losses = f.readlines()
         loss_list = []
         index = []
@@ -44,8 +44,8 @@ def draw_loss(file_path,name="loss"):
             start_idx += 1
     fig, ax = plt.subplots()
     ax.plot(index, loss_list)
-    ax.set(xlabel="Iteration(times)",ylabel="Loss",title="Training Loss for "+file_path)
+    ax.set(xlabel="Iteration(times)",ylabel="Loss",title="Training Loss for "+file_name)
     ax.grid()
 
-    fig.savefig(name+".png")
+    fig.savefig(savepath+"/"+file_name+"_"+outputImgName+".png")
     plt.show()

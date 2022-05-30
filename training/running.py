@@ -50,7 +50,6 @@ def training(model:nn.Module, loader:DataLoader, optimizer=None, scheduler=None,
         if is_initialized():
             loader.sampler.set_epoch(i)
         for idx, batch in enumerate(loader):
-            batch["imgs"] = batch["imgs"].to(_cfg.pre_device)
             optimizer.zero_grad()
             loss = model(batch)
             loss.backward()

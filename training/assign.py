@@ -7,17 +7,22 @@ from models.anchor import generateAnchors
 
 from torch.distributed import get_rank, is_initialized
 
+'''
+WARNING:
+All the assign class must have "config" as initialized parameter
+'''
+
 class AnchAssign():
-    def __init__(self, anchors=generateAnchors(), _cfg = cfg):
-        if isinstance(_cfg, str):
+    def __init__(self, anchors=generateAnchors(), config = cfg):
+        if isinstance(config, str):
             from .config import Config
-            _cfg = Config(_cfg)
-        self.cfg = _cfg
+            config = Config(config)
+        self.cfg = config
         self.anchs = anchors
         self.anchs_len = anchors.shape[1]
-        self.assignType = _cfg.assignType
-        self.iou = IOU(ioutype=_cfg.iouType, gt_type='x1y1wh')
-        self.threshold_iou = _cfg.assign_threshold
+        self.assignType = config.assignType
+        self.iou = IOU(ioutype=config.iouType, gt_type='x1y1wh')
+        self.threshold_iou = config.assign_threshold
 
         if is_initialized():
             self.device = get_rank()

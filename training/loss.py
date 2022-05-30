@@ -14,16 +14,19 @@ class Defaultloss(nn.Module):
      "anns":List lenth B, each with np.float32 ann}
     '''
 
-    def __init__(self, assign_method=AnchAssign(), anchors=generateAnchors(singleBatch=True)):
+    def __init__(self, assign_method=AnchAssign, anchors=generateAnchors(singleBatch=True), config = cfg):
         super(Defaultloss, self).__init__()
-        self.label_assignment = assign_method
+        if isinstance(config, str):
+            from .config import Config
+            _cfg = Config(config)
+        self.label_assignment = assign_method(config=config)
         if isinstance(anchors, np.ndarray):
             anchors = torch.from_numpy(anchors)
         self.anchs = anchors
         if is_initialized():
             self.device = get_rank()
         else:
-            self.device = cfg.pre_device
+            self.device = config.pre_device
         self._pre_anchor()
 
     def _pre_anchor(self):

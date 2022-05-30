@@ -12,21 +12,21 @@ from torch.utils.data import DataLoader
 from training.config import cfg
 
 
-def training_process(rank, world_size):
+def training_process(rank, world_size, config):
     dist.init_process_group("nccl",rank=rank, world_size=world_size)
     dataset = CrowdHDataset("CrowdHuman/annotation_train_coco_style.json")
     ddsampler = torch.utils.data.distributed.DistributedSampler(dataset)
 
-    loader = DataLoader(dataset, batch_size=cfg.batch_size, sampler=ddsampler, collate_fn=OD_default_collater)
+    loader = DataLoader(dataset, batch_size=config.batch_size, sampler=ddsampler, collate_fn=OD_default_collater)
 
-    model = YOLOv3(numofclasses=1, istrainig=True, backbone=resnet50, pretrained=True)
+    model = YOLOv3(numofclasses=1, istrainig=True, backbone=resnet50, pretrained=True, config=config)
     model = torch.nn.SyncBatchNorm.convert_sync_batchnorm(model).to(rank)
     ddp_model = DDP(model, device_ids=[rank], output_device=rank)
 
-    run.training(ddp_model, loader, logname="resnet50")
+    run.training(ddp_model, loader, logname="resnet50_2nd")
 
 if __name__ == "__main__":
     os.environ["MASTER_ADDR"] = "localhost"
     os.environ["MASTER_PORT"] = "29500"
     world_size = 2
-    mp.spawn(training_process,args=(world_size,), nprocs=world_size)
+    mp.spawn(training_process,args=(world_size, cfg), nprocs=world_size)

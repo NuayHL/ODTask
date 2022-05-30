@@ -21,7 +21,6 @@ from training.assign import AnchAssign
 from training.config import cfg
 import torch.distributed as dist
 
-assigns = AnchAssign()
 
 model = YOLOv3(numofclasses=1,istrainig=True)
 model = model.to(cfg.pre_device)
