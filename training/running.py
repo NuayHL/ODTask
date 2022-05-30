@@ -54,7 +54,7 @@ def training(model:nn.Module, loader:DataLoader, optimizer=None, scheduler=None,
             loss = model(batch)
             loss.backward()
             optimizer.step()
-            logger.info("epoch "+str(i+1)+"/"+str(_cfg.trainingEpoch)+":"+str(idx)+"/"+str(lenepoch)
+            logger.info("epoch "+str(i+1)+"/"+str(_cfg.trainingEpoch)+":"+str(idx+1)+"/"+str(lenepoch)
                         +"//loss:"+str(loss.item()))
         scheduler.step()
         if (i+1)%5 == 0:
