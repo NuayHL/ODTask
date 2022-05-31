@@ -39,7 +39,7 @@ class Config():
         elif str == "cuda":
             return str
         else:
-            return ""
+            return "cpu"
 
 cfg = Config("training/cfg/config.yaml")
 

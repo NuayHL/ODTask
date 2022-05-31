@@ -13,13 +13,13 @@ All the assign class must have "config" as initialized parameter
 '''
 
 class AnchAssign():
-    def __init__(self, anchors=generateAnchors(), config = cfg):
+    def __init__(self, anchors=generateAnchors(singleBatch=True), config = cfg):
         if isinstance(config, str):
             from .config import Config
             config = Config(config)
         self.cfg = config
-        self.anchs = anchors
-        self.anchs_len = anchors.shape[1]
+        self.anchs = torch.from_numpy(anchors).double()
+        self.anchs_len = anchors.shape[0]
         self.assignType = config.assignType
         self.iou = IOU(ioutype=config.iouType, gt_type='x1y1wh')
         self.threshold_iou = config.assign_threshold
@@ -28,6 +28,8 @@ class AnchAssign():
             self.device = get_rank()
         else:
             self.device = cfg.pre_device
+        if torch.cuda.is_available():
+            self.anchs = self.anchs.to(self.device)
 
     def assign(self,gt):
         '''
@@ -44,13 +46,8 @@ class AnchAssign():
             raise NotImplementedError("Unknown assignType")
 
     def _retinaAssign(self,gt):
-        singleAch = self.anchs[0,:]
-        singleAch = torch.from_numpy(singleAch).double()
-        if torch.cuda.is_available():
-            singleAch = singleAch.to(self.device)
-
-        output_size = self.anchs.shape[:2]
-        assign_result = torch.zeros(tuple(output_size))
+        output_size = (len(gt),self.anchs.shape[0])
+        assign_result = torch.zeros(output_size)
         if torch.cuda.is_available():
             assign_result = assign_result.to(self.device)
         for ib in range(self.cfg.batch_size):
@@ -59,7 +56,7 @@ class AnchAssign():
             if torch.cuda.is_available():
                 imgAnn = imgAnn.to(self.device)
 
-            iou_matrix = self.iou(singleAch, imgAnn)
+            iou_matrix = self.iou(self.anchs, imgAnn)
             iou_max_value, iou_max_idx = torch.max(iou_matrix, dim=1)
             iou_max_value_anns, iou_max_idx_anns = torch.max(iou_matrix, dim=0)
             # negative: 0

@@ -103,6 +103,7 @@ class CrowdHDataset(Dataset):
         fx = cfg.input_height / float(img[0]["height"])
         fy = cfg.input_width / float(img[0]["width"])
         img = cv2.imread(self.imgPath + img[0]["file_name"] + ".jpg")
+        img = img[:,:,::-1]
         img = cv2.resize(img.astype(np.float32), (cfg.input_height, cfg.input_width))
 
         anns = self.annotations.getAnnIds(idx)
