@@ -8,7 +8,7 @@ os.environ["CUDA_VISIBLE_DEVICES"]  = '0,1'
 
 '''
 {"imgs":List lenth B, each with np.float32 img
-"anns":List lenth B, each with np.float32 ann}
+"anns":List lenth B, each with np.float32 ann, x1y1wh}
 '''
 
 import cv2

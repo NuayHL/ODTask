@@ -19,7 +19,7 @@ def training_process(rank, world_size, config):
 
     loader = DataLoader(dataset, batch_size=config.batch_size, sampler=ddsampler, collate_fn=OD_default_collater)
 
-    model = YOLOv3(numofclasses=1, istrainig=True, backbone=resnet50, pretrained=True, config=config)
+    model = YOLOv3(numofclasses=1, istrainig=True, backbone=resnet50, config=config, pretrained=True)
     model = torch.nn.SyncBatchNorm.convert_sync_batchnorm(model).to(rank)
     ddp_model = DDP(model, device_ids=[rank], output_device=rank)
 

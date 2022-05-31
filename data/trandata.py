@@ -3,6 +3,7 @@ import cv2
 import numpy as np
 import torch
 from pycocotools.coco import COCO
+from copy import deepcopy
 from util import progressbar
 from torch.utils.data import Dataset
 from torchvision import transforms
@@ -107,7 +108,7 @@ class CrowdHDataset(Dataset):
         img = cv2.resize(img.astype(np.float32), (cfg.input_height, cfg.input_width))
 
         anns = self.annotations.getAnnIds(idx)
-        anns = self.annotations.loadAnns(anns)
+        anns = deepcopy(self.annotations.loadAnns(anns))
         finanns = []
         for ann in anns:
             if self.bbox_type not in ann.keys(): continue
@@ -141,7 +142,7 @@ def OD_default_collater(data):
     used in torch.utils.data.DataLaoder as collater_fn
     parse the batch_size data into dict
     {"imgs":List lenth B, each with np.float32 img
-     "anns":List lenth B, each with np.float32 ann}
+     "anns":List lenth B, each with np.float32 ann, annType: x1y1wh}
     '''
     imgs = torch.stack([preprocess_train(torch.from_numpy(np.transpose(s["img"]/255, (2, 0, 1))).float()) for s in data])
     annos = [np.array(s["anns"]).astype(np.float32) for s in data]

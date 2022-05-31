@@ -110,7 +110,6 @@ class Defaultloss(nn.Module):
 
         bbox_loss = torch.stack(bbox_loss)
         cls_loss = torch.stack(cls_loss)
-        print("bbox_loss:",bbox_loss, "cls_loss:",cls_loss)### debug loss
         bbox_loss = bbox_loss.sum()
         cls_loss = cls_loss.sum()
         loss = torch.add(bbox_loss,cls_loss)

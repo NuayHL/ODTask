@@ -34,7 +34,7 @@ def training(model:nn.Module, loader:DataLoader, optimizer=None, scheduler=None,
     :return:
     '''
     if optimizer==None:
-        optimizer = optim.Adam(model.parameters(),lr=0.0005)
+        optimizer = optim.Adam(model.parameters(),lr=0.001)
     else:
         optimizer = optimizer(model.parameters(), **kwargs)
     if scheduler==None:

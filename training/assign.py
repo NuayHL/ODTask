@@ -50,7 +50,7 @@ class AnchAssign():
         assign_result = torch.zeros(output_size)
         if torch.cuda.is_available():
             assign_result = assign_result.to(self.device)
-        for ib in range(self.cfg.batch_size):
+        for ib in range(len(gt)):
             imgAnn = gt[ib][:,:4]
             imgAnn = torch.from_numpy(imgAnn).double()
             if torch.cuda.is_available():
