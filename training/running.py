@@ -21,7 +21,8 @@ def model_load_gen(model:nn.Module, filename, path="models/model_pth", parallel_
     model.load_state_dict(state_dict)
     return model
 
-def training(model:nn.Module, loader:DataLoader, optimizer=None, scheduler=None, logname=None, _cfg=cfg, save_per_epoch=5, **kwargs):
+def training(model:nn.Module, loader:DataLoader, optimizer=None, scheduler=None,
+             logname=None, _cfg=cfg, save_per_epoch=5, **kwargs):
     '''
     :param model: model for training
     :param loader: dataloader for training

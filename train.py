@@ -23,7 +23,7 @@ def training_process(rank, world_size, config):
     model = torch.nn.SyncBatchNorm.convert_sync_batchnorm(model).to(rank)
     ddp_model = DDP(model, device_ids=[rank], output_device=rank)
 
-    run.training(ddp_model, loader, logname="resnet50_2nd")
+    run.training(ddp_model, loader, logname="resnet50_3nd")
 
 if __name__ == "__main__":
     os.environ["MASTER_ADDR"] = "localhost"
