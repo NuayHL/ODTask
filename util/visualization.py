@@ -97,3 +97,35 @@ def draw_loss(file_name,outputImgName="loss",logpath="trainingLog",savepath="tra
 
     fig.savefig(savepath+"/"+file_name+"_"+outputImgName+".png")
     plt.show()
+
+def draw_loss_epoch(file_name, num_in_epoch, outputImgName="loss per epoch", logpath="trainingLog", savepath="trainingLog/lossV"):
+    with open(logpath+"/"+file_name,"r") as f:
+        losses = f.readlines()
+        epoch_loss = 0
+        epoch_count = 0
+        start_idx = 0
+        loss_list = []
+        index = []
+        for i in losses:
+            if "WARNING" in i:
+                continue
+            if start_idx % num_in_epoch == 0:
+                index.append(epoch_count)
+                loss_list.append(epoch_loss / num_in_epoch)
+                epoch_loss = 0
+                epoch_count += 1
+            loss = float(i[(i.rfind(":")+1):])
+            epoch_loss += loss
+            start_idx += 1
+        if start_idx % num_in_epoch != 0:
+            index.append(epoch_count)
+            loss_list.append(epoch_loss / (start_idx % num_in_epoch))
+    index = index[1:]
+    loss_list = loss_list[1:]
+    fig, ax = plt.subplots()
+    ax.plot(index, loss_list)
+    ax.set(xlabel="Epochs",ylabel="Loss",title="Training Loss per epoch for "+file_name)
+    ax.grid()
+
+    fig.savefig(savepath+"/"+file_name+"_"+outputImgName+".png")
+    plt.show()
