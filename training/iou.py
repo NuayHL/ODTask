@@ -110,6 +110,7 @@ class IOU(nn.Module):
         input[:, 1] = input[:,1] - 0.5 * input[:,3]
         input[:, 2] = input[:,0] + input[:,2]
         input[:, 3] = input[:,1] + input[:,3]
+        return input
 
 
 

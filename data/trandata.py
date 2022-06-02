@@ -125,6 +125,20 @@ class CrowdHDataset(Dataset):
         bbox.append(1)
         return bbox
 
+class evalDataset(Dataset):
+    '''
+    used only for evaluation
+    '''
+    def __init__(self, annotationPath, bboxtype = cfg.input_bboxtype):
+        super(evalDataset, self).__init__()
+        self.annotation = COCO(annotationPath)
+
+    def __len__(self):
+        return len(self.annotations.imgs)
+
+    def __getitem__(self, idx):
+        pass
+
 class CocoDataset(Dataset):
     def __init__(self):
         super(CocoDataset, self).__init__()
@@ -135,7 +149,6 @@ class CocoDataset(Dataset):
 
     def __len__(self):
         pass
-
 
 def OD_default_collater(data):
     '''

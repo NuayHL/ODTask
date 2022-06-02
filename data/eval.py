@@ -1,5 +1,8 @@
 import numpy as np
 import cv2
+import json
+import pycocotools.cocoeval
+
 
 class Results():
     def __init__(self, bboxes, classes, scores):
@@ -7,7 +10,7 @@ class Results():
         self.classes = classes
         self.scores = scores
 
-    def load_bboxex(self):
+    def load_bboxes(self):
         return self._xywh_to_x1y1x2y2(self.bboxes)
 
     def _xywh_to_x1y1x2y2(self,input):
@@ -15,6 +18,7 @@ class Results():
         input[:, 1] = input[:,1] - 0.5 * input[:,3]
         input[:, 2] = input[:,0] + input[:,2]
         input[:, 3] = input[:,1] + input[:,3]
+        return input
 
 def average_precision():
     pass
