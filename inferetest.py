@@ -28,7 +28,7 @@ from util.visualization import show_bbox
 img = cv2.imread("img1.jpg")
 
 model = YOLOv3(numofclasses=1,backbone=resnet50).to(cfg.pre_device)
-model = model_load_gen(model, "70E_2B_800_1024_resnet50_3nd_gpu0:E20",parallel_trained=True)
+model = model_load_gen(model, "70E_2B_800_1024_resnet50_3nd_gpu0_E70",parallel_trained=True)
 model.eval()
 
 result = model(img)

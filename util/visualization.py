@@ -7,7 +7,7 @@ from models.anchor import generateAnchors
 from training.assign import AnchAssign
 
 def _isArrayLike(obj):
-    # really works for np.ndarray?
+    # not working for numpy
     return hasattr(obj, '__iter__') and hasattr(obj, '__len__')
 
 class DatasetVisual():
@@ -36,6 +36,15 @@ def dataset_assign_inspection(dataset, imgid, annsidx=None):
 
 def assign_visualization(img, anns, annsidx=None, anchors=generateAnchors(singleBatch=True),
                          assignresult=None, anntype="x1y1wh"):
+    '''
+    :param img:
+    :param anns:
+    :param annsidx: choose an index refered to certain annotation bbox, default is the middle
+    :param anchors: pre defined anchors
+    :param assignresult: assign result
+    :param anntype: anns bbox type
+    :return: img with bbox
+    '''
     if assignresult==None:
         assignf = AnchAssign()
         assignresult = assignf.assign([anns])
@@ -43,6 +52,7 @@ def assign_visualization(img, anns, annsidx=None, anchors=generateAnchors(single
     num_anns = len(anns)
     if annsidx is None:
         annsidx = int(num_anns/2)
+    assert annsidx>=0 and annsidx<num_anns, "invalid ann_index for these img, change a suitable \'annsidx\'"
 
     sp_idx = torch.eq(assignresult, annsidx+1).to("cpu")
     sp_anch = (anchors[sp_idx]).astype(np.int32)
@@ -57,7 +67,7 @@ def show_bbox(img, bboxs=[], type="xywh",color=[0,0,255],**kwargs):
 def _add_bbox_img(img, bboxs=[], type="xywh",color=[0,0,255],**kwargs):
     '''
     :param img: str for file path/np.ndarray (w,h,c)
-    :param bboxs: one or list
+    :param bboxs: one or lists or np.ndarray
     :param type: xywh, x1y1x2y2, x1y1wh
     :param color: red
     :param kwargs: related to cv2.rectangle
@@ -66,6 +76,10 @@ def _add_bbox_img(img, bboxs=[], type="xywh",color=[0,0,255],**kwargs):
     assert type in ["xywh","x1y1x2y2","x1y1wh"],"the bbox format should be \'xywh\' or \'x1y1x2y2\' or \'x1y1wh\'"
     if isinstance(img, str):
         img = cv2.imread(img)
+        img = img[:,:,::-1]
+    if isinstance(bboxs, np.ndarray):
+        assert len(bboxs.shape)==2 and bboxs.shape[1]>=4, "invalid bboxes shape for np.ndarray"
+        bboxs = bboxs.astype(np.int8)
     bboxs = bboxs if _isArrayLike(bboxs) else [bboxs]
     for bbox in bboxs:
         bbox[0] = int(bbox[0])
