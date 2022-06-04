@@ -28,6 +28,6 @@ model = model.to(cfg.pre_device)
 
 dataset = CrowdHDataset("CrowdHuman/annotation_train_coco_style.json")
 loader = DataLoader(dataset, batch_size=cfg.batch_size, collate_fn=OD_default_collater)
-run.training(model,loader,logname="test1")
-run.model_save_gen(model,"20E_4B_640*800")
+run.training(model,loader,logname="test")
+run.model_save_gen(model,"20E_4B_640_800")
 

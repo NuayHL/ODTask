@@ -2,10 +2,10 @@ device:
  preprocess: cuda1
 
 input:
- width: 800
- height: 1024
+ width: 640
+ height: 800
  bboxtype: fbox #bbox(vbox)/hbox/fbox
- batchSize: 2
+ batchSize: 8
 
 assign_cfg:
  assignType: default #default/ATSS

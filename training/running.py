@@ -54,7 +54,7 @@ def training(model:nn.Module, loader:DataLoader, optimizer=None, scheduler=None,
         name += ("_gpu"+str(rank))
 
     # initialize logger
-    logger = mylogger(name,rank)
+    logger = mylogger(name,rank, is_initialized())
 
     # begin training
     model.train()

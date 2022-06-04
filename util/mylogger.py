@@ -1,7 +1,7 @@
 import datetime
 import logging
 
-def mylogger(name: str, rank=0):
+def mylogger(name: str, rank=0, is_initialized=False):
     logger = logging.getLogger(name)
     logger.setLevel("INFO")
     logger.propagate = False
@@ -21,7 +21,8 @@ def mylogger(name: str, rank=0):
     logger.addHandler(fh)
 
     # if the rank is 0, then also print the training process on the console
-    if rank == 0:
+    # if is not in multi GPU training, print on the console
+    if not is_initialized or rank == 0:
         ch = logging.StreamHandler()
         ch.setLevel(logging.DEBUG)
         ch.setFormatter(formatter)
