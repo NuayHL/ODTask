@@ -75,6 +75,6 @@ def training(model:nn.Module, loader:DataLoader, optimizer=None, scheduler=None,
         if (i+1)%save_per_epoch == 0:
             logger.warning("Saving Models!")
             if rank == 0 or not is_initialized():
-                model_save_gen(model,name+":E"+str(i+1))
+                model_save_gen(model,name+"_E"+str(i+1))
 
 
