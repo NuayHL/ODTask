@@ -99,8 +99,8 @@ class YOLOv3(nn.Module):
             else:
                 dt_ib = self._xywh_to_x1y1x2y2(dt_ib)
                 fin_list = batched_nms(dt_ib, max_value, max_index, self.config.nms_threshold)
-                real_result = Results(dt_ib[fin_list].to("cpu"), max_index[fin_list].to("cpu"),
-                                      max_value[fin_list].to("cpu"))
+                real_result = Results(dt_ib[fin_list].detach().to("cpu"), max_index[fin_list].detach().to("cpu"),
+                                      max_value[fin_list].detach().to("cpu"))
             result_list.append(real_result)
 
         return result_list
