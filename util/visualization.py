@@ -38,6 +38,11 @@ def printImg(img, title: str='', type = 0):
     plt.axis('off')
     plt.show()
 
+@tran_img
+def show_bbox(img, bboxs=[], type="xywh",color=[0,0,255],**kwargs):
+    img = _add_bbox_img(img, bboxs=bboxs, type=type,color=color,**kwargs)
+    printImg(img)
+
 def dataset_inspection(dataset, imgid, anntype="x1y1wh"):
     sample = dataset[imgid]
     img = sample["img"].astype(np.int32)
@@ -50,6 +55,7 @@ def dataset_assign_inspection(dataset, imgid, annsidx=None):
     anns = np.array(sample["anns"]).astype(np.int32)
     assign_visualization(img, anns, annsidx)
 
+@tran_img
 def assign_visualization(img, anns, annsidx=None, anchors=generateAnchors(singleBatch=True),
                          assignresult=None, anntype="x1y1wh"):
     '''
@@ -76,10 +82,6 @@ def assign_visualization(img, anns, annsidx=None, anchors=generateAnchors(single
     img = _add_bbox_img(img, [anns[annsidx,:]], type=anntype, color=[255,0,0], thickness=3, lineType=8)
     printImg(img)
 
-def show_bbox(img, bboxs=[], type="xywh",color=[0,0,255],**kwargs):
-    img = _add_bbox_img(img, bboxs=bboxs, type=type,color=color,**kwargs)
-    printImg(img)
-
 def _add_bbox_img(img, bboxs=[], type="xywh",color=[0,0,255],**kwargs):
     '''
     :param img: str for file path/np.ndarray (w,h,c)
@@ -90,9 +92,6 @@ def _add_bbox_img(img, bboxs=[], type="xywh",color=[0,0,255],**kwargs):
     :return: img with bbox
     '''
     assert type in ["xywh","x1y1x2y2","x1y1wh"],"the bbox format should be \'xywh\' or \'x1y1x2y2\' or \'x1y1wh\'"
-    if isinstance(img, str):
-        img = cv2.imread(img)
-        img = img[:,:,::-1]
     if isinstance(bboxs, np.ndarray):
         assert len(bboxs.shape)==2 and bboxs.shape[1]>=4, "invalid bboxes shape for np.ndarray"
         bboxs = bboxs.astype(np.int8)

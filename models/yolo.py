@@ -18,9 +18,6 @@ from data.eval import Results
 
 from torch.distributed import get_rank, is_initialized
 
-
-
-
 class YOLOv3(nn.Module):
     def __init__(self, numofclasses=2, ioutype="iou", loss=Defaultloss(), nms=NMS(),
                  anchors = generateAnchors(singleBatch=True), istrainig=False, backbone=None,
@@ -78,7 +75,6 @@ class YOLOv3(nn.Module):
         # restore the predicting bboxes via pre-defined anchors
         dt[:, 2:4, :] = anchors[:, 2:, :] * torch.exp(dt[:, 2:4, :])
         dt[:, :2, :] = anchors[:, 2, :] + dt[:, :2, :] * anchors[:, 2:, :]
-        dt[:, 4:, :] = -dt[:, 4:, :]
         dt = torch.clamp(dt, min=0)
         dt[:, 4:, :] = torch.clamp(dt[:, 4:, :], max=1.)
 

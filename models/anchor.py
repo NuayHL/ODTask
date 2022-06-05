@@ -4,6 +4,7 @@ from training.config import cfg
 def generateAnchors(fpnlevels=None, basesize=None, ratios=None, scales=None, singleBatch=False,_cfg=cfg):
     '''
     return: batch_size X total_anchor_numbers X 4
+    anchor box type: x1y1x2y2
     singleBatch: set True if only need batchsize at 1
     '''
     if fpnlevels == None:
@@ -36,8 +37,10 @@ def generateAnchors(fpnlevels=None, basesize=None, ratios=None, scales=None, sin
                 start += lenAnchors
         allAnchors = np.append(allAnchors,anchors,axis=0)
 
+    # singleBatch return total_anchor_number X 4
     if singleBatch: return allAnchors
 
+    # batchedAnchor return Batchsize X total_anchor_number X 4
     allAnchors = np.tile(allAnchors, (_cfg.batch_size, 1, 1))
 
     return allAnchors
