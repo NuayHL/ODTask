@@ -168,7 +168,7 @@ def load_single_inferencing_img(img):
     :param img:
         str: file path
         np.ndarray: W x H x C
-        torch.Tensor: W x H x Ca
+        torch.Tensor: B x C x W x H
     :return: Input Tensor viewed as batch_size 1
     '''
     if isinstance(img,str):

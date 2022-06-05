@@ -1,8 +1,10 @@
 import numpy as np
 import cv2
 import json
-import pycocotools.cocoeval
+from pycocotools.cocoeval import COCOeval
+'''
 
+'''
 
 class Results():
     def __init__(self, bboxes, classes, scores):

@@ -10,11 +10,27 @@ def _isArrayLike(obj):
     # not working for numpy
     return hasattr(obj, '__iter__') and hasattr(obj, '__len__')
 
+# decorator for tran img
+def tran_img(fun):
+    def finfun(img, *args, **kwargs):
+        if isinstance(img, str):
+            img = cv2.imread(img)
+            img = img[:,:,::-1]
+        if isinstance(img, np.ndarray):
+            pass
+        if isinstance(img, torch.Tensor):
+            img = img.numpy()
+        img = img.astype(np.int32)
+        temp = fun(img, *args, **kwargs)
+        return temp
+    return finfun
+
 class DatasetVisual():
     def __init__(self, dataset):
         self.dataset = dataset
         self.assignresult = {}
 
+@tran_img
 def printImg(img, title: str='', type = 0):
     if type == 0: plt.imshow(img)
     else: plt.imshow(img, cmap=plt.cm.gray)
