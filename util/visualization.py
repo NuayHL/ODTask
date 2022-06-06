@@ -94,7 +94,7 @@ def _add_bbox_img(img, bboxs=[], type="xywh",color=[0,0,255],**kwargs):
     assert type in ["xywh","x1y1x2y2","x1y1wh"],"the bbox format should be \'xywh\' or \'x1y1x2y2\' or \'x1y1wh\'"
     if isinstance(bboxs, np.ndarray):
         assert len(bboxs.shape)==2 and bboxs.shape[1]>=4, "invalid bboxes shape for np.ndarray"
-        bboxs = bboxs.astype(np.int8)
+        bboxs = bboxs.astype(np.int32)
     bboxs = bboxs if _isArrayLike(bboxs) else [bboxs]
     for bbox in bboxs:
         bbox[0] = int(bbox[0])

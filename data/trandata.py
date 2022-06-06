@@ -8,13 +8,12 @@ from util import progressbar
 from torch.utils.data import Dataset
 from torchvision import transforms
 from training.config import cfg
-from util.visualization import printImg
 
 # need to add logging module to print which kind input is used
 
 preprocess_train = transforms.Compose([
-    transforms.Normalize(mean=[0.4223358, 0.44211456, 0.46431773],
-                         std=[0.29363019, 0.28503336, 0.29044453])
+    transforms.Normalize(mean=[0.46431773, 0.44211456, 0.4223358],
+                         std=[0.29044453, 0.28503336, 0.29363019])
 ])
 
 def odgt2coco(filepath, outputname, type):
@@ -101,32 +100,32 @@ class CrowdHDataset(Dataset):
         return len(self.annotations.imgs)
 
     def __getitem__(self, idx):
+        '''
+        base output:
+            sample['img'] = whc np.int32? img
+            sample['anns] = n4 np.int32 img
+        '''
         idx += 1
         img = self.annotations.loadImgs(idx)
-        fx = cfg.input_height / float(img[0]["height"])
-        fy = cfg.input_width / float(img[0]["width"])
+
         img = cv2.imread(self.imgPath + img[0]["file_name"] + ".jpg")
         img = img[:,:,::-1]
-        img = cv2.resize(img.astype(np.float32), (cfg.input_height, cfg.input_width))
 
         anns = self.annotations.getAnnIds(idx)
         anns = deepcopy(self.annotations.loadAnns(anns))
         finanns = []
         for ann in anns:
             if self.bbox_type not in ann.keys(): continue
-            finanns.append(self._resizeGt(ann[self.bbox_type],fx,fy))
-        return {"img":img, "anns":finanns}
+            finanns.append(ann[self.bbox_type])
+        finanns = np.array(finanns).astype(np.int32)
+        sample = {"img":img, "anns":finanns}
 
-    def _resizeGt(self,bbox,fx,fy):
-        # resize the gt bbox according to the img resize
-        bbox[0] *= fx
-        bbox[2] *= fx
-        bbox[1] *= fy
-        bbox[3] *= fy
-        # adding classes index
-        bbox.append(1)
-        return bbox
+        if self.transform:
+            sample = self.transform(sample)
 
+        return sample
+
+    # temp mistake, need to update
     def single_batch_input(self, sign):
         if isinstance(sign, str):
             idx = self._getwithname(sign)
@@ -153,7 +152,7 @@ class evalDataset(Dataset):
         self.annotation = COCO(annotationPath)
 
     def __len__(self):
-        return len(self.annotations.imgs)
+        return len(self.annotation.imgs)
 
     def __getitem__(self, idx):
         pass
@@ -169,6 +168,43 @@ class CocoDataset(Dataset):
     def __len__(self):
         pass
 
+class Normalizer():
+    def __init__(self):
+        self.mean = np.array([0.46431773, 0.44211456, 0.4223358])
+        self.std = np.array([0.29044453, 0.28503336, 0.29363019])
+    def __call__(self, sample):
+        img = sample['img']
+        img = img.astype(np.float32)/255
+        img = (img - self.mean)/self.std
+        return {'img':img, 'anns':sample['anns']}
+
+class Augmenter():
+    def __call__(self, sample, filp_x=0.5):
+        if np.random.rand() < filp_x:
+            img, anns = sample["img"], sample["anns"]
+            img = img[:,::-1,:]
+
+            _, width, _ = img.shape
+            anns[:, 0] = width - anns[:, 0] - anns[:, 2]
+
+            sample = {'img':img, 'anns':anns}
+        return sample
+
+class Resizer():
+    def __init__(self,config = cfg):
+        self.width = cfg.input_width
+        self.height = cfg.input_height
+    def __call__(self, sample):
+        img, anns = sample["img"], sample["anns"].astype(np.float32)
+        fy = self.height / float(img.shape[0])
+        fx = self.width / float(img.shape[1])
+        anns[:, 0] = fx * anns[:, 0]
+        anns[:, 2] = fx * anns[:, 2]
+        anns[:, 1] = fy * anns[:, 1]
+        anns[:, 3] = fy * anns[:, 3]
+        img = cv2.resize(img, (self.width, self.height))
+        return {'img':img, 'anns':anns}
+
 def OD_default_collater(data):
     '''
     used in torch.utils.data.DataLaoder as collater_fn
@@ -176,9 +212,8 @@ def OD_default_collater(data):
     {"imgs":List lenth B, each with np.float32 img
      "anns":List lenth B, each with np.float32 ann, annType: x1y1wh}
     '''
-    imgs = torch.stack([preprocess_train(torch.from_numpy(np.transpose(s["img"]/255, (2, 0, 1))).float()) for s in data])
-    annos = [np.array(s["anns"]).astype(np.float32) for s in data]
-
+    imgs = torch.stack([torch.from_numpy(np.transpose(s["img"], (2, 0, 1))).float() for s in data])
+    annos = [s["anns"] for s in data]
     return {"imgs":imgs, "anns":annos}
 
 def load_single_inferencing_img(img):
