@@ -50,7 +50,7 @@ print("%6.3f" % 2.3)
 ## Cv2
 
 ```
-cv2.imread()  #format: np.ndarray <w,h,c>
+cv2.imread()  #format: np.ndarray <h,w,c>
 ```
 ```
 dst = cv2.resize(src,dsize,dst=None,fx=None,fy=None,interpolation=None)

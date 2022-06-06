@@ -122,3 +122,19 @@ loss上周遇到的问题在于输出的值异常和loss的反向传播出错。
 2. 学习使用python装饰器和argparse的用法。
 3. 编写coco载入的数据集。
 4. 构建从p3到p7的金字塔型网络。
+
+### 6nd Jun.
+摸鱼两天后居然一下从loss那里看出了问题，是BCEloss写反了我日你妈。顺带找出来好几个很离谱的
+错误，bbox regression应该为smooth l1 loss我写成了l2导致不好收敛， 二是对clsloss平均的时候
+除以了全部样本（不包含忽略）导致clsloss权重降低，我想这也是为什么BCE写错了也能勉勉强强收敛的原因。
+
+今天的工作主要还有重新写了dataset那里，将dataset的transform与dataset分离操作。这样提高代码的
+封装性。而且在这里我又发现一个错误，我定义config的时候将width和height写反了，直接导致anchorbox
+在w和h的数量上是反的，这样对图片覆盖不全，这一部分也改了，对cv2的坑又一步摸熟悉了tmd。
+
+回顾retinanet的源代码，对于tensor的操作确实惊为天人，还是要多学习个。
+
+trian的差不多之后稍微看下结果，编写一下评价代码以及了解下tensorbroad，多读几篇论文，然后再决定
+下一步做什么。
+
+不着急不着急。
