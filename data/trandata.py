@@ -117,7 +117,8 @@ class CrowdHDataset(Dataset):
         for ann in anns:
             if self.bbox_type not in ann.keys(): continue
             # append 1: add category
-            finanns.append(ann[self.bbox_type].append(1))
+            ann[self.bbox_type].append(1)
+            finanns.append(ann[self.bbox_type])
         finanns = np.array(finanns).astype(np.int32)
         sample = {"img":img, "anns":finanns}
 

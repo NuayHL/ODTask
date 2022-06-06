@@ -16,8 +16,8 @@ def numofParameters(model: nn.Module ):
     return nump
 
 def cfgtoStr(cfg:Config):
-    name = str(cfg.trainingEpoch)+"E_"+str(cfg.batch_size)+"B_"+str(cfg.input_width)+ \
-           "_"+str(cfg.input_height)
+    name = str(cfg.trainingEpoch)+"E_"+str(cfg.batch_size)+"B_"+str(cfg.input_height)+ \
+           "_"+str(cfg.input_width)
     return name
 
 def DDPsavetoNormal(dict):

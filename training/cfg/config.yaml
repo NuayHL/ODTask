@@ -13,7 +13,7 @@ assign_cfg:
  threshold: 0.5
 
 anchors:
- ratios : [3,5]
+ ratios : [2,4]
  scales : [0.75,1]
 
 training:
