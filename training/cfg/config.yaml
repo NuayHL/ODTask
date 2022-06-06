@@ -2,8 +2,8 @@ device:
  preprocess: cuda1
 
 input:
- width: 640
- height: 800
+ width: 800
+ height: 1024
  bboxtype: fbox #bbox(vbox)/hbox/fbox
  batchSize: 8
 

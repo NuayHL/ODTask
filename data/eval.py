@@ -24,9 +24,14 @@ class Results():
         return input
 
 def inference_single(img, model):
+    model.eval()
     result = model(img)
     result:Results = result[0]
+    if result is None:
+        print("gg!")
+        return 0
     bboxes = result.load_bboxes()
+    print(bboxes)
     show_bbox(img, bboxes, type="x1y1x2y2")
     return bboxes
 

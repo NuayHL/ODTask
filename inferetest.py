@@ -24,17 +24,20 @@ from training.assign import AnchAssign
 from training.config import cfg
 from training.running import model_load_gen
 from util.visualization import show_bbox
+from data.eval import inference_single
 
-img = cv2.imread("img1.jpg")
+id = 456
 
-model = YOLOv3(numofclasses=1,backbone=resnet50).to(cfg.pre_device)
+dataset = CrowdHDataset("CrowdHuman/annotation_train_coco_style.json")
+
+model = YOLOv3(numofclasses=1,backbone=resnet50, istrainig=True)
 model = model_load_gen(model, "70E_2B_800_1024_resnet50_3nd_gpu0_E70",parallel_trained=True)
-model.eval()
+model = model.to(cfg.pre_device)
+model.train()
+batch = dataset.single_batch_input("273271,1c76f000a7edecb7")
+batch['imgs'] = batch['imgs'].to(cfg.pre_device)
+loss = model(batch)
+print(loss)
 
-result = model(img)
-if result[0] == None:
-    print("GG!")
-else:
-    print(result[0].bboxes)
-    bboxes = (result[0].bboxes).numpy().astype(np.int32)
-    show_bbox("img1.jpg", bboxes, color=[255,0,0])
+
+

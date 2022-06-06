@@ -80,7 +80,6 @@ class YOLOv3(nn.Module):
 
         result_list = []
         posi_idx = torch.ge(dt[:, 4, :], self.config.background_threshold)
-        print(posi_idx.sum())###
         for ib in range(dt.shape[0]):
             # delete background
             dt_ib = dt[ib, :, posi_idx[ib]]
@@ -88,7 +87,6 @@ class YOLOv3(nn.Module):
             # delete low score
             max_value, max_index = torch.max(dt_ib[5:, :], dim=0)
             has_object_idx = torch.ge(max_value, self.config.class_threshold)
-            print(has_object_idx.sum())
             max_value = max_value[has_object_idx]
             max_index = max_index[has_object_idx]
 

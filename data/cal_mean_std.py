@@ -5,6 +5,10 @@ from util.primary import progressbar
 
 import os
 
+'''
+format in BGR! Need to change to RGB
+'''
+
 def cal_img_mean_std(coco_style_annotation_path, type):
     with open(coco_style_annotation_path) as f:
         annotation = json.load(f)

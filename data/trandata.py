@@ -8,6 +8,7 @@ from util import progressbar
 from torch.utils.data import Dataset
 from torchvision import transforms
 from training.config import cfg
+from util.visualization import printImg
 
 # need to add logging module to print which kind input is used
 
@@ -87,13 +88,14 @@ def odgt2coco(filepath, outputname, type):
     json.dump(output, open("../CrowdHuman/"+outputname+".json",'w'))
 
 class CrowdHDataset(Dataset):
-    def __init__(self, annotationPath, type="train", bbox_type=cfg.input_bboxtype):
+    def __init__(self, annotationPath, type="train", bbox_type=cfg.input_bboxtype, transform=None):
         super(CrowdHDataset, self).__init__()
         self.jsonPath = annotationPath
         self.imgPath = "CrowdHuman/Images_"+type+"/"
         self.type = type
         self.annotations = COCO(annotationPath)
         self.bbox_type = bbox_type
+        self.transform = transform
 
     def __len__(self):
         return len(self.annotations.imgs)
@@ -124,6 +126,23 @@ class CrowdHDataset(Dataset):
         # adding classes index
         bbox.append(1)
         return bbox
+
+    def single_batch_input(self, sign):
+        if isinstance(sign, str):
+            idx = self._getwithname(sign)
+        else:
+            idx = sign
+        data = self[idx]
+        data = [data]
+        imgs = torch.stack(
+            [preprocess_train(torch.from_numpy(np.transpose(s["img"] / 255, (2, 0, 1))).float()) for s in data])
+        annos = [np.array(s["anns"]).astype(np.float32) for s in data]
+        return {"imgs": imgs, "anns": annos}
+
+    def _getwithname(self, str):
+        for idx in range(len(self)):
+            if self.annotations.imgs[idx+1]["file_name"] == str:
+                return idx
 
 class evalDataset(Dataset):
     '''
@@ -173,6 +192,8 @@ def load_single_inferencing_img(img):
     '''
     if isinstance(img,str):
         img = cv2.imread(img)
+        img = img[:,:,::-1]
+
     elif isinstance(img,torch.Tensor):
         return img
     elif isinstance(img,np.ndarray):
