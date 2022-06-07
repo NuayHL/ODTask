@@ -13,7 +13,7 @@ All the assign class must have "config" as initialized parameter
 '''
 
 class AnchAssign():
-    def __init__(self, anchors=generateAnchors(singleBatch=True), config = cfg):
+    def __init__(self, anchors=generateAnchors(singleBatch=True), config = cfg, device=None):
         if isinstance(config, str):
             from .config import Config
             config = Config(config)
@@ -24,10 +24,11 @@ class AnchAssign():
         self.iou = IOU(ioutype=config.iouType, gt_type='x1y1wh')
         self.threshold_iou = config.assign_threshold
 
-        if is_initialized():
-            self.device = get_rank()
+        if device is None:
+            self.device = config.pre_device
         else:
-            self.device = cfg.pre_device
+            self.device = device
+
         if torch.cuda.is_available():
             self.anchs = self.anchs.to(self.device)
 

@@ -4,7 +4,6 @@ import numpy as np
 from training.config import cfg
 from training.assign import AnchAssign
 from models.anchor import generateAnchors
-from torch.distributed import is_initialized, get_rank
 
 '''
 super par:
@@ -17,19 +16,22 @@ class Defaultloss(nn.Module):
     {"imgs":List lenth B, each with np.float32 img
      "anns":List lenth B, each with np.float32 ann}
     '''
-    def __init__(self, assign_method=AnchAssign, anchors=generateAnchors(singleBatch=True), use_focal=True, config = cfg):
+    def __init__(self, assign_method=AnchAssign, anchors=generateAnchors(singleBatch=True), use_focal=True,
+                 device=None, config = cfg):
         super(Defaultloss, self).__init__()
         if isinstance(config, str):
             from .config import Config
             _cfg = Config(config)
-        self.label_assignment = assign_method(config=config)
+        self.label_assignment = assign_method(config=config, device=device)
         if isinstance(anchors, np.ndarray):
             anchors = torch.from_numpy(anchors)
         self.anchs = anchors
-        if is_initialized():
-            self.device = get_rank()
-        else:
+
+        if device is None:
             self.device = config.pre_device
+        else:
+            self.device = device
+
         self._pre_anchor()
         self.alpha = 0.25
         self.gamma = 2.0

@@ -8,9 +8,6 @@ from util.visualization import dataset_inspection, dataset_assign_inspection, dr
 from torchvision import transforms
 from models.anchor import generateAnchors
 
-id = 5
-
-dataset = CrowdHDataset("CrowdHuman/annotation_train_coco_style.json")
-
-print(len(dataset))
+draw_loss('70E_2B_800_1024_resnet50_4nd_gpu0.txt')
+draw_loss_epoch('70E_2B_800_1024_resnet50_4nd_gpu0.txt', 3750)
 

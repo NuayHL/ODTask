@@ -27,12 +27,12 @@ def training_process(rank, world_size, config):
     model = torch.nn.SyncBatchNorm.convert_sync_batchnorm(model).to(rank)
     ddp_model = DDP(model, device_ids=[rank], output_device=rank)
 
-    run.training(ddp_model, loader, logname="resnet50_4nd")
+    run.training(ddp_model, loader, logname="resnet50_test")
 
 def training_process_checkpoint(rank, world_size, config):
-    startepoch = 0
-    endepoch = None
-    file = ''
+    startepoch = 20
+    endepoch = 40
+    file = '70E_2B_800_1024_resnet50_4nd_gpu0_E20'
     dist.init_process_group("nccl",rank=rank, world_size=world_size)
     dataset = CrowdHDataset("CrowdHuman/annotation_train_coco_style.json",
                             transform=transforms.Compose([Normalizer(),
@@ -47,10 +47,12 @@ def training_process_checkpoint(rank, world_size, config):
     model = torch.nn.SyncBatchNorm.convert_sync_batchnorm(model).to(rank)
     ddp_model = DDP(model, device_ids=[rank], output_device=rank)
 
-    run.training(ddp_model, loader, logname="resnet50_4nd")
+    run.training(ddp_model, loader, logname="resnet50_4nd_continue",starting_epoch=startepoch,ending_epoch=endepoch)
 
 if __name__ == "__main__":
     os.environ["MASTER_ADDR"] = "localhost"
     os.environ["MASTER_PORT"] = "29500"
+    os.environ["CUDA_VISIBLE_DEVICES"] = "1,0"
     world_size = 2
-    mp.spawn(training_process,args=(world_size, cfg), nprocs=world_size)
+    mp.spawn(training_process_checkpoint,args=(world_size, cfg), nprocs=world_size)
+    #mp.spawn(training_process,args=(world_size, cfg), nprocs=world_size)

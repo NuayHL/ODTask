@@ -31,8 +31,6 @@ def inference_single(img, model):
         print("gg!")
         return 0
     bboxes = result.load_bboxes()
-    print(bboxes)
-    show_bbox(img, bboxes, type="x1y1x2y2")
     return bboxes
 
 def average_precision():
