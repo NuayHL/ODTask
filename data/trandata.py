@@ -127,18 +127,17 @@ class CrowdHDataset(Dataset):
 
         return sample
 
-    # temp mistake, need to update
+    # need to be tested
     def single_batch_input(self, sign):
         if isinstance(sign, str):
             idx = self._getwithname(sign)
         else:
             idx = sign
         data = self[idx]
-        data = [data]
-        imgs = torch.stack(
-            [preprocess_train(torch.from_numpy(np.transpose(s["img"] / 255, (2, 0, 1))).float()) for s in data])
-        annos = [np.array(s["anns"]).astype(np.float32) for s in data]
-        return {"imgs": imgs, "anns": annos}
+        norm = Normalizer()
+        resizer = Resizer()
+        data = resizer(norm(data))
+        return OD_default_collater([data])
 
     def _getwithname(self, str):
         for idx in range(len(self)):
@@ -194,8 +193,8 @@ class Augmenter():
 
 class Resizer():
     def __init__(self,config = cfg):
-        self.width = cfg.input_width
-        self.height = cfg.input_height
+        self.width = config.input_width
+        self.height = config.input_height
     def __call__(self, sample):
         img, anns = sample["img"], sample["anns"].astype(np.float32)
         fy = self.height / float(img.shape[0])
@@ -238,7 +237,7 @@ def load_single_inferencing_img(img):
     else:
         raise NotImplementedError("Unknown inputType")
 
-    img = (cv2.resize(img.astype(np.float32), (cfg.input_height, cfg.input_width)))/255
+    img = (cv2.resize(img.astype(np.float32), (cfg.input_width, cfg.input_height)))/255
     img = np.transpose(img,(2,0,1))
     img = preprocess_train(torch.from_numpy(img).float())
     img = torch.unsqueeze(img, dim=0)

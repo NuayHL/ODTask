@@ -29,6 +29,26 @@ def training_process(rank, world_size, config):
 
     run.training(ddp_model, loader, logname="resnet50_4nd")
 
+def training_process_checkpoint(rank, world_size, config):
+    startepoch = 0
+    endepoch = None
+    file = ''
+    dist.init_process_group("nccl",rank=rank, world_size=world_size)
+    dataset = CrowdHDataset("CrowdHuman/annotation_train_coco_style.json",
+                            transform=transforms.Compose([Normalizer(),
+                                                          Augmenter(),
+                                                          Resizer()]))
+
+    ddsampler = torch.utils.data.distributed.DistributedSampler(dataset)
+    loader = DataLoader(dataset, batch_size=config.batch_size, sampler=ddsampler, collate_fn=OD_default_collater)
+
+    model = YOLOv3(numofclasses=1, istrainig=True, backbone=resnet50, config=config, pretrained=True)
+    model = run.model_load_gen(model, file, parallel_trained=True)
+    model = torch.nn.SyncBatchNorm.convert_sync_batchnorm(model).to(rank)
+    ddp_model = DDP(model, device_ids=[rank], output_device=rank)
+
+    run.training(ddp_model, loader, logname="resnet50_4nd")
+
 if __name__ == "__main__":
     os.environ["MASTER_ADDR"] = "localhost"
     os.environ["MASTER_PORT"] = "29500"

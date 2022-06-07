@@ -74,7 +74,7 @@ class YOLOv3(nn.Module):
 
         # restore the predicting bboxes via pre-defined anchors
         dt[:, 2:4, :] = anchors[:, 2:, :] * torch.exp(dt[:, 2:4, :])
-        dt[:, :2, :] = anchors[:, 2, :] + dt[:, :2, :] * anchors[:, 2:, :]
+        dt[:, :2, :] = anchors[:, :2, :] + dt[:, :2, :] * anchors[:, 2:, :]
         dt = torch.clamp(dt, min=0)
         dt[:, 4:, :] = torch.clamp(dt[:, 4:, :], max=1.)
 

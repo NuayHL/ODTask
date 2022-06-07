@@ -22,7 +22,7 @@ def model_load_gen(model:nn.Module, filename, path="models/model_pth", parallel_
     return model
 
 def training(model:nn.Module, loader:DataLoader, optimizer=None, scheduler=None,
-             logname=None, _cfg=cfg, save_per_epoch=5, **kwargs):
+             logname=None, _cfg=cfg, save_per_epoch=5, starting_epoch=0, ending_epoch=None, **kwargs):
     '''
     :param model: model for training
     :param loader: dataloader for training
@@ -31,6 +31,8 @@ def training(model:nn.Module, loader:DataLoader, optimizer=None, scheduler=None,
     :param logname: the diy name adding to the cfg_formate
     :param _cfg: cfg
     :param save_per_epoch: save the model state_dict using [final name] per specifc epoch
+    :param starting_epoch: training from the checkpoint
+    :param ending_epoch: specific ending epoch for training, usually smaller than cfg.epoch.
     :param kwargs: using for the optimizer parameters
     :return:
     '''
@@ -56,11 +58,20 @@ def training(model:nn.Module, loader:DataLoader, optimizer=None, scheduler=None,
     # initialize logger
     logger = mylogger(name,rank, is_initialized())
 
+    # handle check point problem
+    if ending_epoch is None:
+        ending_epoch = _cfg.trainingEpoch
+    assert starting_epoch < ending_epoch,'starting_epoch should smaller or equal to ending_epoch'
+
+    # if load from checking points
+    for i in range(starting_epoch):
+        scheduler.step()
+
     # begin training
     model.train()
     lenepoch = len(loader)
 
-    for i in range(_cfg.trainingEpoch):
+    for i in range(starting_epoch, ending_epoch):
         if is_initialized():
             loader.sampler.set_epoch(i)
         for idx, batch in enumerate(loader):
@@ -72,9 +83,12 @@ def training(model:nn.Module, loader:DataLoader, optimizer=None, scheduler=None,
             logger.info("epoch "+str(i+1)+"/"+str(_cfg.trainingEpoch)+":"+str(idx+1)+"/"+str(lenepoch)
                         +"//loss:"+str(loss.item()))
         scheduler.step()
+        if i+1 == ending_epoch:
+            logger.warning("Reaching checkpoint. Saving Models!")
+            if rank == 0 or not is_initialized():
+                model_save_gen(model,name+"_E"+str(i+1))
         if (i+1)%save_per_epoch == 0:
             logger.warning("Saving Models!")
             if rank == 0 or not is_initialized():
                 model_save_gen(model,name+"_E"+str(i+1))
-
 

@@ -12,9 +12,5 @@ id = 5
 
 dataset = CrowdHDataset("CrowdHuman/annotation_train_coco_style.json")
 
-dataset_inspection(dataset, id)
-
-anchors = generateAnchors(singleBatch=True)
-
-show_bbox(dataset[id]['img'],anchors,type="x1y1x2y2")
+print(len(dataset))
 
