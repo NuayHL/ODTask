@@ -20,6 +20,7 @@ class Config():
         self.assign_threshold = self.cfg["assign_cfg"]["threshold"]
 
         #anchor settings
+        self.anchorLevels = self.cfg["anchors"]["fpnlevels"]
         self.anchorRatio = self.cfg["anchors"]["ratios"]
         self.anchorScales = self.cfg["anchors"]["scales"]
 

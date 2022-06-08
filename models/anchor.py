@@ -8,7 +8,7 @@ def generateAnchors(fpnlevels=None, basesize=None, ratios=None, scales=None, sin
     singleBatch: set True if only need batchsize at 1
     '''
     if fpnlevels == None:
-        fpnlevels = [3,4,5]
+        fpnlevels = _cfg.anchorLevels
     if basesize == None:
         basesize = [2**(x+2) for x in fpnlevels]
     if ratios == None:
@@ -45,11 +45,31 @@ def generateAnchors(fpnlevels=None, basesize=None, ratios=None, scales=None, sin
 
     return allAnchors
 
-def anchors_parse():
-    '''
-    return the real bbox the anchor predict
-    '''
-    pass
+def anchors_parse(fplevel=None,ratios=None,scales=None,anchors=generateAnchors(singleBatch=True),config=cfg):
+    anchors[:, 0] += config.input_width/2
+    anchors[:, 2] += config.input_width/2
+    anchors[:, 1] += config.input_height/2
+    anchors[:, 3] += config.input_height/2
+    if fplevel is None:
+        fplevel = config.anchorLevels
+    if scales is None:
+        scales = config.anchorScales
+    if ratios is None:
+        ratios = config.anchorRatio
+    anchors_per_grid = len(scales) * len(ratios)
+    width = config.input_width
+    height = config.input_height
+    begin_level = 0
+    parsed_anch = []
+    for i in fplevel:
+        ilevel_anch = []
+        i_w = width/(2**i)
+        i_h = height/(2**i)
+        for rs in range(anchors_per_grid):
+            ilevel_anch.append(anchors[int(begin_level+rs*i_h*i_w):int(begin_level+(rs+1)*i_h*i_w),:])
+        begin_level += anchors_per_grid*i_h*i_w
+        parsed_anch.append(ilevel_anch)
+    return parsed_anch
 
 def filterAnchors(anchors_arranged_arrays, feature_level=None, row=None, col=None, ratio=None, scale=None):
     '''

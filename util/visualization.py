@@ -113,10 +113,13 @@ def draw_loss(file_name,outputImgName="loss",logpath="trainingLog",savepath="tra
         loss_list = []
         index = []
         start_idx = 0
-        for i in losses:
+        for idx, i in enumerate(losses):
             if "WARNING" in i:
                 continue
-            loss = float(i[(i.rfind(":")+1):])
+            try:
+                loss = float(i[(i.rfind(":")+1):])
+            except:
+                print('errorline:',idx)
             loss_list.append(loss)
             index.append(start_idx)
             start_idx += 1

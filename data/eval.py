@@ -29,8 +29,9 @@ def inference_single(img, model):
     result:Results = result[0]
     if result is None:
         print("gg!")
-        return 0
+        return [[0,0,0,0]]
     bboxes = result.load_bboxes()
+    print(bboxes)
     return bboxes
 
 def average_precision():

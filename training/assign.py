@@ -5,8 +5,6 @@ from .iou import IOU
 from .config import cfg
 from models.anchor import generateAnchors
 
-from torch.distributed import get_rank, is_initialized
-
 '''
 WARNING:
 All the assign class must have "config" as initialized parameter
