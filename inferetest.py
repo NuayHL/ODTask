@@ -27,7 +27,7 @@ from training.running import model_load_gen
 from util.visualization import show_bbox
 from data.eval import inference_single
 
-id = 2555
+id = 255
 
 dataset = CrowdHDataset("CrowdHuman/annotation_train_coco_style.json",transform=trans.Compose([Resizer()]))
 
@@ -37,9 +37,9 @@ model = model.to(cfg.pre_device)
 batch = dataset.single_batch_input(id)
 img = batch['imgs'].to(cfg.pre_device)
 
-#bboxs = model(img)
-bboxs = inference_single(img, model)
-show_bbox(dataset[id]['img'], bboxs, type ="x1y1x2y2")
+bboxs = model(img)
+#bboxs = inference_single(img, model)
+show_bbox(dataset[id]['img'], bboxs, type ="xywh")
 
 batch['imgs'] = batch['imgs'].to(cfg.pre_device)
 model.istraining = True

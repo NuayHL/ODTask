@@ -84,7 +84,10 @@ def training(model:nn.Module, loader:DataLoader, optimizer=None, scheduler=None,
                         +"//loss:"+str(loss.item()))
         scheduler.step()
         if i+1 == ending_epoch:
-            logger.warning("Reaching checkpoint. Saving Models!")
+            if ending_epoch==_cfg.trainingEpoch:
+                logger.warning("Congratulations! Training complete. Saving Models!")
+            else:
+                logger.warning("Reaching checkpoint. Saving Models!")
             if rank == 0 or not is_initialized():
                 model_save_gen(model,name+"_E"+str(i+1))
             break

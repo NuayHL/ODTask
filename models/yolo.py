@@ -84,7 +84,7 @@ class YOLOv3(nn.Module):
             # delete background
             dt_ib = dt[ib, :, posi_idx[ib]]
             print(dt_ib)
-            #return dt_ib[:4,:].t().cpu().detach().numpy()
+            return dt_ib[:4,:].t().cpu().detach().numpy()
             # delete low score
             max_value, max_index = torch.max(dt_ib[5:, :], dim=0)
             has_object_idx = torch.ge(max_value, self.config.class_threshold)
