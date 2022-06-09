@@ -17,6 +17,7 @@ from models.resnet import resnet50
 from training.config import cfg
 
 def training_single(config=cfg):
+    endepoch = 20
     dataset = CrowdHDataset("CrowdHuman/annotation_train_coco_style.json",
                             transform=transforms.Compose([Normalizer(),
                                                           Augmenter(),
@@ -27,7 +28,7 @@ def training_single(config=cfg):
     model = YOLOv3(numofclasses=1, istrainig=True, backbone=resnet50,
                    config=config, pretrained=True).to(config.pre_device)
 
-    run.training(model, loader, _cfg=config, logname="resnet50_test")
+    run.training(model, loader, _cfg=config, logname="resnet50_vbox",ending_epoch=endepoch)
 
 def training_single_checkpoint(config=cfg):
     startepoch = 40
@@ -50,4 +51,4 @@ def training_single_checkpoint(config=cfg):
                  starting_epoch=startepoch, ending_epoch=endepoch)
 
 if __name__ == "__main__":
-    training_single_checkpoint(cfg)
+    training_single(cfg)

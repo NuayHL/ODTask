@@ -4,7 +4,7 @@ device:
 input:
  height: 800
  width: 1024
- bboxtype: fbox #bbox(vbox)/hbox/fbox
+ bboxtype: bbox #bbox(vbox)/hbox/fbox
  batchSize: 8
 
 assign_cfg:
@@ -22,5 +22,5 @@ training:
 
 inference:
  background_threshold : 0.7
- class_threshold : 0.75
- nms_threshold : 0.7
+ class_threshold : 0.6
+ nms_threshold : 0.65

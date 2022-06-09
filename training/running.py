@@ -41,7 +41,7 @@ def training(model:nn.Module, loader:DataLoader, optimizer=None, scheduler=None,
     else:
         optimizer = optimizer(model.parameters(), **kwargs)
     if scheduler==None:
-        scheduler = sche.MultiStepLR(optimizer, milestones=[50], gamma=0.1)
+        scheduler = sche.MultiStepLR(optimizer, milestones=[15], gamma=0.1)
 
     # initialize rank
     if is_initialized(): rank = get_rank()
