@@ -30,10 +30,11 @@ class YOLOv3(nn.Module):
         self.anchors_per_grid = len(self.config.anchorRatio) * len(self.config.anchorScales)
         self.core = Yolov3_core(numofclasses, backbone=backbone, anchors_per_grid=self.anchors_per_grid, **kwargs)
         self.nms = nms
-        print("model is:",is_initialized())###
         if is_initialized():
+            print("MultiGpuTraining: Process",get_rank())
             self.device = get_rank()
         else:
+            print("SingleGpuTraining..")
             self.device = config.pre_device
         if isinstance(anchors, np.ndarray):
             anchors = torch.from_numpy(anchors)
@@ -83,24 +84,34 @@ class YOLOv3(nn.Module):
         for ib in range(dt.shape[0]):
             # delete background
             dt_ib = dt[ib, :, posi_idx[ib]]
-            print(dt_ib)
-            return dt_ib[:4,:].t().cpu().detach().numpy()
+
+            print("target candidate:",sum1.item())
+
             # delete low score
             max_value, max_index = torch.max(dt_ib[5:, :], dim=0)
             has_object_idx = torch.ge(max_value, self.config.class_threshold)
-            sum1 = has_object_idx.sum()
+
+            #####
+            sum2 = has_object_idx.sum()
+            print("classified:", sum2.item())
+            #####
+
             max_value = max_value[has_object_idx]
             max_index = max_index[has_object_idx]
 
-            dt_ib = dt_ib[:4, has_object_idx].t()
+            # fourth value is the target_scores
+            dt_ib = dt_ib[:5, has_object_idx].t()
+            result_ib = torch.cat([dt_ib, torch.unsqueeze(max_value,1),torch.unsqueeze(max_index,1)],dim=1)
 
-            if dt_ib.shape[0] == 0:
+            # dt_ib_target_scores = dt_ib[4, has_object_idx]
+            # dt_ib = dt_ib[:4, has_object_idx].t()
+
+            if sum2.item() == 0:
                 real_result = None
             else:
-                dt_ib = self._xywh_to_x1y1x2y2(dt_ib)
-                fin_list = batched_nms(dt_ib, max_value, max_index, self.config.nms_threshold)
-                real_result = Results(dt_ib[fin_list].detach().cpu(), max_index[fin_list].detach().cpu(),
-                                      max_value[fin_list].detach().cpu())
+                self._xywh_to_x1y1x2y2(result_ib[:,:4])
+                fin_list = batched_nms(result_ib[:,:4], result_ib[:,5], result_ib[:,6], self.config.nms_threshold)
+                real_result = Results(result_ib[fin_list].detach().cpu())
             result_list.append(real_result)
 
         return result_list

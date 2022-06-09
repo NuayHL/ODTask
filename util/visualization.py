@@ -19,7 +19,7 @@ def tran_img(fun):
         if isinstance(img, np.ndarray):
             pass
         if isinstance(img, torch.Tensor):
-            img = img.numpy()
+            img = img.cpu().numpy()
         img = img.astype(np.int32)
         temp = fun(img, *args, **kwargs)
         return temp
@@ -39,8 +39,8 @@ def printImg(img, title: str='', type = 0):
     plt.show()
 
 @tran_img
-def show_bbox(img, bboxs=[], type="xywh",color=[0,0,255],**kwargs):
-    img = _add_bbox_img(img, bboxs=bboxs, type=type,color=color,**kwargs)
+def show_bbox(img, bboxs=[], type="xywh",color=[0,0,255],score=None, **kwargs):
+    img = _add_bbox_img(img, bboxs=bboxs, type=type,color=color,score=score, **kwargs)
     printImg(img)
 
 def dataset_inspection(dataset, imgid, anntype="x1y1wh"):
@@ -82,7 +82,7 @@ def assign_visualization(img, anns, annsidx=None, anchors=generateAnchors(single
     img = _add_bbox_img(img, [anns[annsidx,:]], type=anntype, color=[255,0,0], thickness=3, lineType=8)
     printImg(img)
 
-def _add_bbox_img(img, bboxs=[], type="xywh",color=[0,0,255],**kwargs):
+def _add_bbox_img(img, bboxs=[], type="xywh",color=[0,0,255], score=None, **kwargs):
     '''
     :param img: str for file path/np.ndarray (w,h,c)
     :param bboxs: one or lists or np.ndarray
@@ -95,8 +95,13 @@ def _add_bbox_img(img, bboxs=[], type="xywh",color=[0,0,255],**kwargs):
     if isinstance(bboxs, np.ndarray):
         assert len(bboxs.shape)==2 and bboxs.shape[1]>=4, "invalid bboxes shape for np.ndarray"
         bboxs = bboxs.astype(np.int32)
+    if score is not None:
+        assert len(score)==len(bboxs), "invalid score shape"
+        import json
+        with open("data/categories_coco.json",'r') as fp:
+            classname = json.load(fp)
     bboxs = bboxs if _isArrayLike(bboxs) else [bboxs]
-    for bbox in bboxs:
+    for idx, bbox in enumerate(bboxs):
         bbox[0] = int(bbox[0])
         bbox[1] = int(bbox[1])
         bbox[2] = int(bbox[2])
@@ -105,6 +110,13 @@ def _add_bbox_img(img, bboxs=[], type="xywh",color=[0,0,255],**kwargs):
         elif type == "x1y1wh": a, b = (bbox[0],bbox[1]),(bbox[0]+bbox[2],bbox[1]+bbox[3])
         else: a, b = (bbox[0]-int(bbox[2]/2),bbox[1]-int(bbox[3]/2)),(bbox[0]+int(bbox[2]/2),bbox[1]+int(bbox[3]/2))
         img = cv2.rectangle(img,a,b,color, **kwargs)
+        if score is not None:
+            text = classname[int(score[idx,1].item())]['name']
+            text += ":%.2f"%score[idx,0]
+            point = list(a)
+            point[1] += 11
+
+            img = cv2.putText(img, text, point, cv2.FONT_HERSHEY_PLAIN, 1,[0,0,200])
     return img
 
 def draw_loss(file_name,outputImgName="loss",logpath="trainingLog",savepath="trainingLog/lossV"):

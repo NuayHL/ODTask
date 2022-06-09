@@ -7,14 +7,7 @@ print(os.getcwd())
 "anns":List lenth B, each with np.float32 ann}
 '''
 
-import cv2
-import numpy as np
-from util.visualization import show_bbox
-from data.trandata import CrowdHDataset, OD_default_collater
-from torch.utils.data import DataLoader
-import training.running as run
-import torch
-import torch.nn as nn
+
 
 from training.loss import Defaultloss
 from models.yolo import YOLOv3
@@ -23,30 +16,15 @@ from training.assign import AnchAssign
 from training.config import cfg
 from training.running import model_load_gen
 from util.visualization import show_bbox
-from data.eval import inference_single
-
-id = 456
-
-dataset = CrowdHDataset("CrowdHuman/annotation_train_coco_style.json")
+from data.eval import inference_single_visualization
 
 model = YOLOv3(numofclasses=1,backbone=resnet50)
-model = model_load_gen(model, "70E_4B_800_1024_resnet50_4nd_continue_gpu0_E40",parallel_trained=True)
+model = model_load_gen(model, "70E_8B_800_1024_resnet50_4nd_n_E60",parallel_trained=False)
 model = model.to(cfg.pre_device)
-batch = dataset.single_batch_input(id)
-img = batch['imgs'].to(cfg.pre_device)
 
-f3, f4, f5 = model.core(img)
-print(f3.shape)
-print(f4.shape)
-print(f5.shape)
+img = 'IMG_20220609_141503.jpg'
 
-result = model._result_parse((f3,f4,f5))
-print(result.shape)
+inference_single_visualization(img, model)
 
 
-batch['imgs'] = batch['imgs'].to(cfg.pre_device)
-model.istraining = True
-model.train()
-loss = model(batch)
-print(loss)
 

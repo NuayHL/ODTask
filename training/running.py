@@ -37,11 +37,11 @@ def training(model:nn.Module, loader:DataLoader, optimizer=None, scheduler=None,
     :return:
     '''
     if optimizer==None:
-        optimizer = optim.Adam(model.parameters(),lr=0.001)
+        optimizer = optim.Adam(model.parameters(),lr=0.0015)
     else:
         optimizer = optimizer(model.parameters(), **kwargs)
     if scheduler==None:
-        scheduler = sche.MultiStepLR(optimizer, milestones=[30,35], gamma=0.1)
+        scheduler = sche.MultiStepLR(optimizer, milestones=[50], gamma=0.1)
 
     # initialize rank
     if is_initialized(): rank = get_rank()

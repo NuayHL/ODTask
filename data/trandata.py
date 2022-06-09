@@ -127,6 +127,19 @@ class CrowdHDataset(Dataset):
 
         return sample
 
+    # return real size img
+    def original_img_input(self,sign):
+        if isinstance(sign, str):
+            idx = self._getwithname(sign)
+        else:
+            idx = sign
+        idx += 1
+        img = self.annotations.loadImgs(idx)
+
+        img = cv2.imread(self.imgPath + img[0]["file_name"] + ".jpg")
+        img = img[:,:,::-1]
+        return img
+
     # need to be tested
     def single_batch_input(self, sign):
         if isinstance(sign, str):
@@ -143,6 +156,7 @@ class CrowdHDataset(Dataset):
         for idx in range(len(self)):
             if self.annotations.imgs[idx+1]["file_name"] == str:
                 return idx
+        raise KeyError('Can not find img with name %s'%str)
 
 class evalDataset(Dataset):
     '''
@@ -217,7 +231,7 @@ def OD_default_collater(data):
     annos = [s["anns"] for s in data]
     return {"imgs":imgs, "anns":annos}
 
-def load_single_inferencing_img(img):
+def load_single_inferencing_img(img, device=cfg.pre_device):
     '''
     Used for inferencing one single img
     :param img:
@@ -229,9 +243,8 @@ def load_single_inferencing_img(img):
     if isinstance(img,str):
         img = cv2.imread(img)
         img = img[:,:,::-1]
-
     elif isinstance(img,torch.Tensor):
-        return img
+        return img.to(device)
     elif isinstance(img,np.ndarray):
         pass
     else:
@@ -241,7 +254,7 @@ def load_single_inferencing_img(img):
     img = np.transpose(img,(2,0,1))
     img = preprocess_train(torch.from_numpy(img).float())
     img = torch.unsqueeze(img, dim=0)
-    return img
+    return img.to(device)
 
 if __name__ == '__main__':
     odgt2coco("../CrowdHuman/annotation_val.odgt", "annotation_val_coco_style", "val")
