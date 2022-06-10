@@ -27,12 +27,13 @@ from training.running import model_load_gen
 from util.visualization import show_bbox
 from data.eval import inference_dataset_visualization
 
-id = 10001
+id = 2555
 
 dataset = CrowdHDataset("CrowdHuman/annotation_train_coco_style.json")
+#dataset = CrowdHDataset("CrowdHuman/annotation_val_coco_style.json",type='val')
 
 model = YOLOv3(numofclasses=1,backbone=resnet50)
-model = model_load_gen(model, "70E_8B_800_1024_resnet50_4nd_n_E60",parallel_trained=False)
+model = model_load_gen(model, "70E_8B_800_1024_resnet50_4nd_E60",parallel_trained=False)
 model = model.to(cfg.pre_device)
 
 inference_dataset_visualization(dataset, id, model)

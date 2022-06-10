@@ -19,7 +19,7 @@ from data.eval import Results
 from torch.distributed import get_rank, is_initialized
 
 class YOLOv3(nn.Module):
-    def __init__(self, numofclasses=2, ioutype="iou", loss=Defaultloss, nms=NMS(),
+    def __init__(self, numofclasses=2, loss=Defaultloss, nms=NMS(),
                  anchors = generateAnchors(singleBatch=True), istrainig=False, backbone=None,
                  config=cfg, **kwargs):
         super(YOLOv3, self).__init__()
@@ -41,7 +41,7 @@ class YOLOv3(nn.Module):
         self.loss = loss(device=self.device)
         self._pre_anchor(anchors)
         self.istraining = istrainig
-
+        self.softmax = nn.Softmax(dim=1)
 
     def _pre_anchor(self, anchors):
         if torch.cuda.is_available():
@@ -76,41 +76,26 @@ class YOLOv3(nn.Module):
         # restore the predicting bboxes via pre-defined anchors
         dt[:, 2:4, :] = anchors[:, 2:, :] * torch.exp(dt[:, 2:4, :])
         dt[:, :2, :] = anchors[:, :2, :] + dt[:, :2, :] * anchors[:, 2:, :]
-        dt[:, 4:, :] = torch.clamp(dt[:, 4:, :], min=0., max=1.)
+        dt[:, 4, :] = torch.clamp(dt[:, 4, :], min=0., max=1.)
+        dt[:, 5:, :] = self.softmax(dt[:, 5:, :])
 
         result_list = []
         posi_idx = torch.ge(dt[:, 4, :], self.config.background_threshold)
-        sum1 = posi_idx.sum()
         for ib in range(dt.shape[0]):
             # delete background
             dt_ib = dt[ib, :, posi_idx[ib]]
 
-            print("target candidate:",sum1.item())
-
-            # delete low score
             max_value, max_index = torch.max(dt_ib[5:, :], dim=0)
-            has_object_idx = torch.ge(max_value, self.config.class_threshold)
-
-            #####
-            sum2 = has_object_idx.sum()
-            print("classified:", sum2.item())
-            #####
-
-            max_value = max_value[has_object_idx]
-            max_index = max_index[has_object_idx]
 
             # fourth value is the target_scores
-            dt_ib = dt_ib[:5, has_object_idx].t()
-            result_ib = torch.cat([dt_ib, torch.unsqueeze(max_value,1),torch.unsqueeze(max_index,1)],dim=1)
+            dt_ib = dt_ib[:5, :].t()
+            result_ib = torch.cat([dt_ib, torch.unsqueeze(max_index,1)],dim=1)
 
-            # dt_ib_target_scores = dt_ib[4, has_object_idx]
-            # dt_ib = dt_ib[:4, has_object_idx].t()
-
-            if sum2.item() == 0:
+            if result_ib.shape[0] == 0:
                 real_result = None
             else:
                 self._xywh_to_x1y1x2y2(result_ib[:,:4])
-                fin_list = batched_nms(result_ib[:,:4], result_ib[:,5], result_ib[:,6], self.config.nms_threshold)
+                fin_list = batched_nms(result_ib[:,:4], result_ib[:,4], result_ib[:,5], self.config.nms_threshold)
                 real_result = Results(result_ib[fin_list].detach().cpu())
             result_list.append(real_result)
 

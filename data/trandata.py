@@ -61,7 +61,7 @@ def odgt2coco(filepath, outputname, type):
     info = dict()
     images = []
     annotations = []
-    categories = json.load(open("categories_coco.json"))
+    categories = json.load(open("data/categories_coco.json"))
 
     info["year"] = 2018
     print("begin convert %s dataset annotations to coco format"%type)
@@ -71,20 +71,23 @@ def odgt2coco(filepath, outputname, type):
         for sample in f:
             id += 1
             img = json.loads(sample)
-            w, h, _ = (cv2.imread("../CrowdHuman/images_"+type+"/"+img["ID"]+".jpg")).shape
+            w, h, _ = (cv2.imread("CrowdHuman/Images_"+type+"/"+img["ID"]+".jpg")).shape
             img_info = {"id":id, "width":w, "height":h, "file_name":img["ID"]}
             images.append(img_info)
             for bbox in img["gtboxes"]:
                 if bbox["tag"] == "mask": continue
                 if "ignore" in bbox["extra"].keys() and bbox["extra"]["ignore"] == 1: continue
                 bbox_id += 1
-                bbox_info={"id":bbox_id,"image_id":id,"category_id":1,"bbox":bbox["vbox"],"fbox":bbox["fbox"],"hbox":bbox["hbox"],"iscrowd":0}
+                area = bbox['vbox'][2] * bbox['vbox'][3] #vbox area
+                bbox_info={"id":bbox_id,"image_id":id,"category_id":1,
+                           "bbox":bbox["vbox"],"fbox":bbox["fbox"],"hbox":bbox["hbox"],
+                           "area":area, "iscrowd":0}
                 if "ignore" in bbox["head_attr"].keys() and bbox["head_attr"]["ignore"] == 1: del bbox_info["hbox"]
                 annotations.append(bbox_info)
             progressbar(float(id/num_imgs))
 
     output = {"info":info, "images":images, "annotations":annotations, "categories":categories}
-    json.dump(output, open("../CrowdHuman/"+outputname+".json",'w'))
+    json.dump(output, open("CrowdHuman/"+outputname+".json",'w'))
 
 class CrowdHDataset(Dataset):
     def __init__(self, annotationPath, type="train", bbox_type=cfg.input_bboxtype, transform=None):
@@ -260,6 +263,6 @@ def load_single_inferencing_img(img, device=cfg.pre_device):
     return img.to(device)
 
 if __name__ == '__main__':
-    odgt2coco("../CrowdHuman/annotation_val.odgt", "annotation_val_coco_style", "val")
-    odgt2coco("../CrowdHuman/annotation_train.odgt","annotation_train_coco_style","train")
+    odgt2coco("CrowdHuman/annotation_val.odgt", "annotation_val_coco_style_area", "val")
+    odgt2coco("CrowdHuman/annotation_train.odgt","annotation_train_coco_style_area","train")
 
