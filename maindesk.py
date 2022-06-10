@@ -22,9 +22,9 @@ from training.assign import AnchAssign
 from training.config import cfg
 import torch.distributed as dist
 
-
 model = YOLOv3(numofclasses=1,istrainig=True, backbone=resnet50)
-model = model.to(cfg.pre_device)
+if torch.cuda.is_available():
+    model = model.to(cfg.pre_device)
 
 dataset = CrowdHDataset("CrowdHuman/annotation_train_coco_style.json")
 loader = DataLoader(dataset, batch_size=cfg.batch_size, collate_fn=OD_default_collater)

@@ -244,7 +244,10 @@ def load_single_inferencing_img(img, device=cfg.pre_device):
         img = cv2.imread(img)
         img = img[:,:,::-1]
     elif isinstance(img,torch.Tensor):
-        return img.to(device)
+        if torch.cuda.is_available():
+            return img.to(device)
+        else:
+            return img
     elif isinstance(img,np.ndarray):
         pass
     else:
