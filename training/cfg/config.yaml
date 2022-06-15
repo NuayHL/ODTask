@@ -1,5 +1,5 @@
 device:
- preprocess: cuda0
+ preprocess: cuda1
 
 input:
  height: 800
@@ -21,6 +21,6 @@ training:
  epoch : 70
 
 inference:
- background_threshold : 0.4
+ background_threshold : 0.7
  class_threshold : 0.7
  nms_threshold : 0.6

@@ -9,6 +9,7 @@ from copy import deepcopy
 from data.trandata import CrowdHDataset, OD_default_collater
 from training.config import cfg
 from util.primary import progressbar
+from training.running import model_load_gen
 from time import time
 '''
 
@@ -45,7 +46,7 @@ class Results():
         output[:,3] = output[:,3] - output[:,1]
         return output
 
-def model_eval(dataset, model, config=cfg):
+def model_eval_coco(dataset, model, config=cfg):
     '''
     return a result np.ndarray for COCOeval
     '''
@@ -72,6 +73,26 @@ def model_eval(dataset, model, config=cfg):
         progressbar(float((idx + 1) / lenth), barlenth=40)
     return result_np
 
+def model_eval_loss(model, pthfilename, dataset, batchsize=4, device=cfg.pre_device, pararllel_trained=False):
+    loader = DataLoader(dataset, batch_size=batchsize, collate_fn=OD_default_collater)
+    model = model_load_gen(model, filename=pthfilename, parallel_trained=pararllel_trained)
+    model = model.to(device)
+
+    model.eval()
+    lenth = len(loader)
+    print('loader lenth:',lenth)
+    losses = 0
+
+    starttime = time()
+    for idx, batch in enumerate(loader):
+        batch['imgs'] = batch['imgs'].to(device)
+        loss = model(batch)
+        loss = loss.item()
+        losses += loss
+        progressbar(float((idx + 1) / lenth), barlenth=50)
+    print("evluation complete:",time()-starttime,'s')
+    print(pthfilename+'loss:', losses / lenth)
+
 def inference_dataset_visualization(dataset:CrowdHDataset, sign, model, config=cfg):
     '''
     use to inference img from a CrowdHdataset like dataset
@@ -94,11 +115,13 @@ def inference_dataset_visualization(dataset:CrowdHDataset, sign, model, config=c
     bboxes[:, 3] *= fy
     show_bbox(ori_img, bboxes, type='x1y1x2y2', score=scores, thickness=1)
 
-def inference_single_visualization(img:str, model, config=cfg):
+def inference_single_visualization(img:str, model, config=cfg, thickness=3):
     '''
     use to inference img from a outside image file.
     '''
     ori_img = cv2.imread(img)
+    if not isinstance(ori_img,np.ndarray):
+        raise FileNotFoundError
     ori_img = ori_img[:,:,::-1]
     model.eval()
     result = model(img)
@@ -113,15 +136,13 @@ def inference_single_visualization(img:str, model, config=cfg):
     bboxes[:, 2] *= fx
     bboxes[:, 1] *= fy
     bboxes[:, 3] *= fy
-    show_bbox(ori_img, bboxes, type='x1y1x2y2', score=scores, thickness=3)
+    show_bbox(ori_img, bboxes, type='x1y1x2y2', score=scores, thickness=thickness)
 
 def average_precision():
     pass
 
 def average_recall():
     pass
-
-COCOeval
 
 
 

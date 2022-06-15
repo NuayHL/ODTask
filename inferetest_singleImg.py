@@ -4,13 +4,13 @@ from training.config import cfg
 from training.running import model_load_gen
 from data.eval import inference_single_visualization
 
-model = YOLOv3(numofclasses=1,backbone=resnet50)
-model = model_load_gen(model, "70E_8B_800_1024_resnet50_4nd_E60",parallel_trained=False)
+model = YOLOv3(numofclasses=1,backbone=None)
+model = model_load_gen(model, "70E_8B_800_1024_darknet53_E70",parallel_trained=False)
 model = model.to(cfg.pre_device)
 
-img = '273271,c9db000d5146c15.jpg'
+img = 'Img/IMG_20220610_154620.jpg'
 
-inference_single_visualization(img, model)
+inference_single_visualization(img, model,thickness=3)
 
 
 
