@@ -45,8 +45,6 @@ def training(model:nn.Module, loader:DataLoader, optimizer=None, scheduler='step
         scheduler = 'steplr'
     if scheduler=='steplr':
         scheduler = sche.MultiStepLR(optimizer, milestones=[15], gamma=0.1)
-    elif scheduler=='ploy':
-        pass
     elif scheduler=='cosineRestarts':
         scheduler = CosineAnnealingWarmupRestarts(optimizer, first_cycle_steps=20, max_lr=0.1, min_lr=0.0001, warmup_steps=5, gamma=0.8 )
     else:
