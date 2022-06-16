@@ -8,6 +8,7 @@ import torch.optim as optim
 import torch.optim.lr_scheduler as sche
 from torch.distributed import is_initialized, get_rank
 from util.primary import DDPsavetoNormal
+from cosine_annealing_warmup import CosineAnnealingWarmupRestarts
 
 def model_save_gen(model:nn.Module, filename, path="models/model_pth"):
     torch.save({"GEN":model.state_dict()}, path+"/"+filename+".pt")
@@ -21,7 +22,7 @@ def model_load_gen(model:nn.Module, filename, path="models/model_pth", parallel_
     model.load_state_dict(state_dict)
     return model
 
-def training(model:nn.Module, loader:DataLoader, optimizer=None, scheduler=None,
+def training(model:nn.Module, loader:DataLoader, optimizer=None, scheduler='steplr',
              logname=None, _cfg=cfg, save_per_epoch=5, starting_epoch=0, ending_epoch=None, **kwargs):
     '''
     :param model: model for training
@@ -40,8 +41,16 @@ def training(model:nn.Module, loader:DataLoader, optimizer=None, scheduler=None,
         optimizer = optim.Adam(model.parameters(),lr=0.0015)
     else:
         optimizer = optimizer(model.parameters(), **kwargs)
-    if scheduler==None:
+    if scheduler is None:
+        scheduler = 'steplr'
+    if scheduler=='steplr':
         scheduler = sche.MultiStepLR(optimizer, milestones=[15], gamma=0.1)
+    elif scheduler=='ploy':
+        pass
+    elif scheduler=='cosineRestarts':
+        scheduler = CosineAnnealingWarmupRestarts(optimizer, first_cycle_steps=20, max_lr=0.1, min_lr=0.0001, warmup_steps=5, gamma=0.8 )
+    else:
+        raise NotImplementedError('invalid scheduler')
 
     # initialize rank
     if is_initialized(): rank = get_rank()

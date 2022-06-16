@@ -74,6 +74,9 @@ def model_eval_coco(dataset, model, config=cfg):
     return result_np
 
 def model_eval_loss(model, pthfilename, dataset, batchsize=4, device=cfg.pre_device, pararllel_trained=False):
+    '''
+    draw loss for testing dataset from the stored .pth model dict
+    '''
     loader = DataLoader(dataset, batch_size=batchsize, collate_fn=OD_default_collater)
     model = model_load_gen(model, filename=pthfilename, parallel_trained=pararllel_trained)
     model = model.to(device)
