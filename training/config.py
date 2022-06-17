@@ -16,7 +16,7 @@ class Config():
 
         #assign cfg
         self.assignType = self.cfg["assign_cfg"]["assignType"]
-        self.iouType = self.cfg["assign_cfg"]["ioutype"]
+        self.assignIouType = self.cfg["assign_cfg"]["ioutype"]
         self.assign_threshold = self.cfg["assign_cfg"]["threshold"]
 
         #anchor settings

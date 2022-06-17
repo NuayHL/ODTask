@@ -19,7 +19,7 @@ class AnchAssign():
         self.anchs = torch.from_numpy(anchors).double()
         self.anchs_len = anchors.shape[0]
         self.assignType = config.assignType
-        self.iou = IOU(ioutype=config.iouType, gt_type='x1y1wh')
+        self.iou = IOU(ioutype=config.assignIouType, gt_type='x1y1wh')
         self.threshold_iou = config.assign_threshold
 
         if device is None:

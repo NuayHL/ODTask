@@ -8,11 +8,15 @@ from training.running import model_load_gen
 from torchvision.transforms import Compose
 from pycocotools.coco import COCO
 from pycocotools.cocoeval import COCOeval
+from training.config import cfg
 
-gtnp = np.load('CrowdHuman/70E_8B_800_1024_resnet50_4nd_E60_0.7_train.npy')
-gtnp[:,6] += gtnp[:,6] + 1
+config = cfg
+id = 1010
 
-gt = COCO('CrowdHuman/annotation_train_coco_style_area.json')
+gtnp = np.load('CrowdHuman/70E_8B_800_1024_Darknet53_E35_0.7.npy')
+
+gt = COCO("CrowdHuman/annotation_val_coco_style.json")
+
 dt = gt.loadRes(gtnp)
 
 eval = COCOeval(gt, dt, 'bbox')

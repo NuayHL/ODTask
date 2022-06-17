@@ -32,9 +32,12 @@ class Results():
         '''
         return self.result[:,:4], self.result[:, 4:]
 
-    def to_evaluation(self, idx):
-        self.img_id = idx
-        img_id = np.ones(shape=(self.len, 1),dtype=np.float32)*idx
+    def to_evaluation(self, img_id):
+        '''
+        return img_id x1y1wh score class
+        '''
+        self.img_id = img_id
+        img_id = np.ones(shape=(self.len, 1),dtype=np.float32)*img_id
         result = np.concatenate((img_id, self._x1y1x2y2_to_x1y1wh()), 1)
         result[:, 6] = result[:, 6] + 1
         return result
@@ -46,12 +49,13 @@ class Results():
         output[:,3] = output[:,3] - output[:,1]
         return output
 
-def model_eval_coco(dataset, model, config=cfg):
+def model_eval_coco(dataset:CrowdHDataset, model, config=cfg):
     '''
     return a result np.ndarray for COCOeval
+    formate: imgidx x1y1wh score class
     '''
     assert model.istraining is False,'Model should be set as evaluation states'
-    loader = DataLoader(dataset,shuffle=False,batch_size=8, collate_fn=OD_default_collater)
+    loader = DataLoader(dataset,shuffle=False,batch_size=config.batch_size, collate_fn=OD_default_collater)
     model.eval()
     result_list = []
     result_np = np.ones((0,7), dtype=np.float32)
@@ -66,9 +70,18 @@ def model_eval_coco(dataset, model, config=cfg):
     print('Sorting...')
     lenth = len(result_list)
     for idx, result in enumerate(result_list):
-        try:
-            result_np = np.concatenate((result_np,result.to_evaluation(idx+1)),0)
-        except:
+        if result is not None:
+            img_id = dataset.image_id[idx]
+            ori_img = dataset.annotations.loadImgs(img_id)[0]
+            fx = ori_img['width']/config.input_width
+            fy = ori_img['height']/config.input_height
+            result_formated = result.to_evaluation(img_id)
+            result_formated[:, 1] *= fx
+            result_formated[:, 3] *= fx
+            result_formated[:, 2] *= fy
+            result_formated[:, 4] *= fy
+            result_np = np.concatenate((result_np,result_formated),0)
+        else:
             pass
         progressbar(float((idx + 1) / lenth), barlenth=40)
     return result_np
@@ -76,6 +89,7 @@ def model_eval_coco(dataset, model, config=cfg):
 def model_eval_loss(model, pthfilename, dataset, batchsize=4, device=cfg.pre_device, pararllel_trained=False):
     '''
     draw loss for testing dataset from the stored .pth model dict
+    Please do not use this, it is meaning less.
     '''
     loader = DataLoader(dataset, batch_size=batchsize, collate_fn=OD_default_collater)
     model = model_load_gen(model, filename=pthfilename, parallel_trained=pararllel_trained)
@@ -141,11 +155,6 @@ def inference_single_visualization(img:str, model, config=cfg, thickness=3):
     bboxes[:, 3] *= fy
     show_bbox(ori_img, bboxes, type='x1y1x2y2', score=scores, thickness=thickness)
 
-def average_precision():
-    pass
-
-def average_recall():
-    pass
 
 
 

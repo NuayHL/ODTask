@@ -71,7 +71,7 @@ def odgt2coco(filepath, outputname, type):
         for sample in f:
             id += 1
             img = json.loads(sample)
-            w, h, _ = (cv2.imread("CrowdHuman/Images_"+type+"/"+img["ID"]+".jpg")).shape
+            h, w, _ = (cv2.imread("CrowdHuman/Images_"+type+"/"+img["ID"]+".jpg")).shape
             img_info = {"id":id, "width":w, "height":h, "file_name":img["ID"]}
             images.append(img_info)
             for bbox in img["gtboxes"]:
@@ -90,12 +90,21 @@ def odgt2coco(filepath, outputname, type):
     json.dump(output, open("CrowdHuman/"+outputname+".json",'w'))
 
 class CrowdHDataset(Dataset):
+    '''
+    Two index system:
+        using idx: search using the idx, the position which stored the image_id. Start from 0.
+        using id: search using image_id. Usually starts from 1.
+    Relation:
+        Default: id = idx + 1
+        Always right: id = self.image_id[idx]
+    '''
     def __init__(self, annotationPath, type="train", bbox_type=cfg.input_bboxtype, transform=None):
         super(CrowdHDataset, self).__init__()
         self.jsonPath = annotationPath
         self.imgPath = "CrowdHuman/Images_"+type+"/"
         self.type = type
         self.annotations = COCO(annotationPath)
+        self.image_id = self.annotations.getImgIds()
         self.bbox_type = bbox_type
         self.transform = transform
 
@@ -108,13 +117,12 @@ class CrowdHDataset(Dataset):
             sample['img'] = whc np.int32? img
             sample['anns] = n4 np.int32 img
         '''
-        idx += 1
-        img = self.annotations.loadImgs(idx)
+        img = self.annotations.loadImgs(self.image_id[idx])
 
         img = cv2.imread(self.imgPath + img[0]["file_name"] + ".jpg")
         img = img[:,:,::-1]
 
-        anns = self.annotations.getAnnIds(idx)
+        anns = self.annotations.getAnnIds(imgIds=self.image_id[idx])
         anns = deepcopy(self.annotations.loadAnns(anns))
         finanns = []
         for ann in anns:
@@ -131,24 +139,23 @@ class CrowdHDataset(Dataset):
         return sample
 
     # return real size img
-    def original_img_input(self,sign):
-        if isinstance(sign, str):
-            idx = self._getwithname(sign)
-        else:
-            idx = sign
-        idx += 1
-        img = self.annotations.loadImgs(idx)
-
+    def original_img_input(self,id):
+        '''
+        id: img_ID
+        '''
+        if isinstance(id, str):
+            _, id = self._getwithname(id)
+        img = self.annotations.loadImgs(id)
         img = cv2.imread(self.imgPath + img[0]["file_name"] + ".jpg")
         img = img[:,:,::-1]
         return img
 
-    # need to be tested
-    def single_batch_input(self, sign):
-        if isinstance(sign, str):
-            idx = self._getwithname(sign)
-        else:
-            idx = sign
+    def single_batch_input(self, idx):
+        '''
+        idx: idx
+        '''
+        if isinstance(idx, str):
+            idx, _ = self._getwithname(idx)
         data = self[idx]
         norm = Normalizer()
         resizer = Resizer()
@@ -156,35 +163,13 @@ class CrowdHDataset(Dataset):
         return OD_default_collater([data])
 
     def _getwithname(self, str):
+        '''
+        return (idx, id)
+        '''
         for idx in range(len(self)):
             if self.annotations.imgs[idx+1]["file_name"] == str:
-                return idx
+                return idx, self.annotations.imgs[idx+1]["id"]
         raise KeyError('Can not find img with name %s'%str)
-
-class evalDataset(Dataset):
-    '''
-    used only for evaluation
-    '''
-    def __init__(self, annotationPath, bboxtype = cfg.input_bboxtype):
-        super(evalDataset, self).__init__()
-        self.annotation = COCO(annotationPath)
-
-    def __len__(self):
-        return len(self.annotation.imgs)
-
-    def __getitem__(self, idx):
-        pass
-
-class CocoDataset(Dataset):
-    def __init__(self):
-        super(CocoDataset, self).__init__()
-        pass
-
-    def __getitem__(self, item):
-        pass
-
-    def __len__(self):
-        pass
 
 class Normalizer():
     def __init__(self):
@@ -263,6 +248,6 @@ def load_single_inferencing_img(img, device=cfg.pre_device):
     return img.to(device)
 
 if __name__ == '__main__':
-    odgt2coco("CrowdHuman/annotation_val.odgt", "annotation_val_coco_style_area", "val")
-    odgt2coco("CrowdHuman/annotation_train.odgt","annotation_train_coco_style_area","train")
+    odgt2coco("CrowdHuman/annotation_val.odgt", "annotation_val_coco_style", "val")
+    odgt2coco("CrowdHuman/annotation_train.odgt","annotation_train_coco_style","train")
 
