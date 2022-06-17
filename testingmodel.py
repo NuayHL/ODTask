@@ -2,7 +2,7 @@ import numpy as np
 from torch.utils.data import DataLoader
 from util.visualization import show_bbox
 from util.primary import progressbar
-from data.trandata import CrowdHDataset, Normalizer, Resizer, OD_default_collater
+from data.trandata import CocoDataset, Normalizer, Resizer, OD_default_collater
 from data.eval import inference_dataset_visualization
 from models.resnet import resnet50
 from models.yolo import YOLOv3
@@ -16,11 +16,11 @@ from data.eval import model_eval_loss
 
 
 if __name__ == '__main__':
-    testset = CrowdHDataset('CrowdHuman/annotation_val_coco_style.json', type='val',
-                            transform=Compose([Normalizer(), Resizer()]))
+    testset = CocoDataset('CrowdHuman/annotation_val_coco_style.json', "CrowdHuman/Images_val",
+                          transform=Compose([Normalizer(), Resizer()]))
     #loss: 0.9178592605517362
 
-    #trainset = CrowdHDataset('CrowdHuman/annotation_train_coco_style.json', type='train',
+    #trainset = CocoDataset('CrowdHuman/annotation_train_coco_style.json', type='train',
                             #transform=Compose([Normalizer(), Resizer()]))
     #loss: 0.21466813359703538
 

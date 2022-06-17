@@ -8,15 +8,16 @@ from torch.nn.parallel import DistributedDataParallel as DDP
 from models.yolo import YOLOv3
 from models.resnet import resnet50
 
-from data.trandata import CrowdHDataset, OD_default_collater, Augmenter, Normalizer, Resizer
+from data.trandata import CocoDataset, OD_default_collater, Augmenter, Normalizer, Resizer
 from torch.utils.data import DataLoader
 from training.config import cfg
 
 
 def training_process(rank, world_size, config):
     dist.init_process_group("nccl",rank=rank, world_size=world_size)
-    dataset = CrowdHDataset("CrowdHuman/annotation_train_coco_style.json",
-                            transform=transforms.Compose([Normalizer(),
+    dataset = CocoDataset("CrowdHuman/annotation_train_coco_style.json",
+                          "CrowdHuman/Images_train",
+                          transform=transforms.Compose([Normalizer(),
                                                           Augmenter(),
                                                           Resizer()]))
 
@@ -34,8 +35,9 @@ def training_process_checkpoint(rank, world_size, config):
     endepoch = 40
     file = '70E_2B_800_1024_resnet50_4nd_gpu0_E20'
     dist.init_process_group("nccl",rank=rank, world_size=world_size)
-    dataset = CrowdHDataset("CrowdHuman/annotation_train_coco_style.json",
-                            transform=transforms.Compose([Normalizer(),
+    dataset = CocoDataset("CrowdHuman/annotation_train_coco_style.json",
+                          "CrowdHuman/Images_train",
+                          transform=transforms.Compose([Normalizer(),
                                                           Augmenter(),
                                                           Resizer()]))
 

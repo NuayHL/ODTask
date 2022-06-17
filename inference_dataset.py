@@ -11,7 +11,7 @@ os.environ["CUDA_VISIBLE_DEVICES"]  = '0,1'
 import cv2
 import numpy as np
 from util.visualization import show_bbox
-from data.trandata import CrowdHDataset, OD_default_collater, Resizer
+from data.trandata import CocoDataset, OD_default_collater, Resizer
 from torch.utils.data import DataLoader
 import training.running as run
 import torch
@@ -29,8 +29,8 @@ from data.eval import inference_dataset_visualization
 
 id = 2555
 
-dataset = CrowdHDataset("CrowdHuman/annotation_train_coco_style.json")
-#dataset = CrowdHDataset("CrowdHuman/annotation_val_coco_style.json",type='val')
+dataset = CocoDataset("CrowdHuman/annotation_train_coco_style.json","CrowdHuman/Images_train")
+#dataset = CocoDataset("CrowdHuman/annotation_val_coco_style.json")
 
 model = YOLOv3(numofclasses=1,backbone=resnet50)
 model = model_load_gen(model, "70E_8B_800_1024_resnet50_4nd_E60",parallel_trained=False)

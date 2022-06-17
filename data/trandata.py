@@ -89,20 +89,57 @@ def odgt2coco(filepath, outputname, type):
     output = {"info":info, "images":images, "annotations":annotations, "categories":categories}
     json.dump(output, open("CrowdHuman/"+outputname+".json",'w'))
 
-class CrowdHDataset(Dataset):
+class Normalizer():
+    def __init__(self):
+        self.mean = np.array([0.46431773, 0.44211456, 0.4223358])
+        self.std = np.array([0.29044453, 0.28503336, 0.29363019])
+    def __call__(self, sample):
+        img = sample['img']
+        img = img.astype(np.float32)/255
+        img = (img - self.mean)/self.std
+        return {'img':img, 'anns':sample['anns']}
+
+class Augmenter():
+    def __call__(self, sample, filp_x=0.5):
+        if np.random.rand() < filp_x:
+            img, anns = sample["img"], sample["anns"]
+            img = img[:,::-1,:]
+
+            _, width, _ = img.shape
+            anns[:, 0] = width - anns[:, 0] - anns[:, 2]
+
+            sample = {'img':img, 'anns':anns}
+        return sample
+
+class Resizer():
+    def __init__(self,config = cfg):
+        self.width = config.input_width
+        self.height = config.input_height
+    def __call__(self, sample):
+        img, anns = sample["img"], sample["anns"].astype(np.float32)
+        fy = self.height / float(img.shape[0])
+        fx = self.width / float(img.shape[1])
+        anns[:, 0] = fx * anns[:, 0]
+        anns[:, 2] = fx * anns[:, 2]
+        anns[:, 1] = fy * anns[:, 1]
+        anns[:, 3] = fy * anns[:, 3]
+        img = cv2.resize(img, (self.width, self.height))
+        return {'img':img, 'anns':anns}
+
+class CocoDataset(Dataset):
     '''
     Two index system:
         using idx: search using the idx, the position which stored the image_id. Start from 0.
         using id: search using image_id. Usually starts from 1.
     Relation:
         Default: id = idx + 1
-        Always right: id = self.image_id[idx]
+        Always right: id = self.image_id[idx] (adopted)
     '''
-    def __init__(self, annotationPath, type="train", bbox_type=cfg.input_bboxtype, transform=None):
-        super(CrowdHDataset, self).__init__()
+    def __init__(self, annotationPath, imgFilePath, bbox_type=cfg.input_bboxtype,
+                 transform=transforms.Compose([Normalizer(), Resizer()])):
+        super(CocoDataset, self).__init__()
         self.jsonPath = annotationPath
-        self.imgPath = "CrowdHuman/Images_"+type+"/"
-        self.type = type
+        self.imgPath = imgFilePath + "/"
         self.annotations = COCO(annotationPath)
         self.image_id = self.annotations.getImgIds()
         self.bbox_type = bbox_type
@@ -171,42 +208,6 @@ class CrowdHDataset(Dataset):
                 return idx, self.annotations.imgs[idx+1]["id"]
         raise KeyError('Can not find img with name %s'%str)
 
-class Normalizer():
-    def __init__(self):
-        self.mean = np.array([0.46431773, 0.44211456, 0.4223358])
-        self.std = np.array([0.29044453, 0.28503336, 0.29363019])
-    def __call__(self, sample):
-        img = sample['img']
-        img = img.astype(np.float32)/255
-        img = (img - self.mean)/self.std
-        return {'img':img, 'anns':sample['anns']}
-
-class Augmenter():
-    def __call__(self, sample, filp_x=0.5):
-        if np.random.rand() < filp_x:
-            img, anns = sample["img"], sample["anns"]
-            img = img[:,::-1,:]
-
-            _, width, _ = img.shape
-            anns[:, 0] = width - anns[:, 0] - anns[:, 2]
-
-            sample = {'img':img, 'anns':anns}
-        return sample
-
-class Resizer():
-    def __init__(self,config = cfg):
-        self.width = config.input_width
-        self.height = config.input_height
-    def __call__(self, sample):
-        img, anns = sample["img"], sample["anns"].astype(np.float32)
-        fy = self.height / float(img.shape[0])
-        fx = self.width / float(img.shape[1])
-        anns[:, 0] = fx * anns[:, 0]
-        anns[:, 2] = fx * anns[:, 2]
-        anns[:, 1] = fy * anns[:, 1]
-        anns[:, 3] = fy * anns[:, 3]
-        img = cv2.resize(img, (self.width, self.height))
-        return {'img':img, 'anns':anns}
 
 def OD_default_collater(data):
     '''

@@ -1,6 +1,6 @@
 import numpy as np
 from util.visualization import show_bbox
-from data.trandata import CrowdHDataset, Resizer
+from data.trandata import CocoDataset, Resizer
 from data.eval import inference_dataset_visualization
 from models.resnet import resnet50
 from models.yolo import YOLOv3

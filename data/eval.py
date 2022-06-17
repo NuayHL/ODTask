@@ -4,16 +4,14 @@ import json
 import torch
 from torch.utils.data import DataLoader
 from pycocotools.cocoeval import COCOeval
+from pycocotools.coco import COCO
 from util.visualization import show_bbox
 from copy import deepcopy
-from data.trandata import CrowdHDataset, OD_default_collater
+from data.trandata import CocoDataset, OD_default_collater
 from training.config import cfg
 from util.primary import progressbar
 from training.running import model_load_gen
 from time import time
-'''
-
-'''
 
 class Results():
     '''
@@ -49,11 +47,28 @@ class Results():
         output[:,3] = output[:,3] - output[:,1]
         return output
 
-def model_eval_coco(dataset:CrowdHDataset, model, config=cfg):
-    '''
+def coco_eval(model, eval_jsonfile, eval_imagefile=None, result_name='Default', config=cfg, np_result=None):
+    if np_result is None:
+        dataset = CocoDataset(eval_jsonfile, eval_imagefile)
+        model = model.to(config.pre_device)
+        model.eval()
+        resultnp = model_inference_coconp(dataset, model, config=config)
+        np.save(result_name + '.npy', resultnp)
+        print("result .npy saved")
+
+    gt = COCO(eval_jsonfile)
+    dt = gt.loadRes(resultnp)
+
+    eval = COCOeval(gt, dt, 'bbox')
+    eval.evaluate()
+    eval.accumulate()
+    eval.summarize()
+
+def model_inference_coconp(dataset:CocoDataset, model, config=cfg):
+    """
     return a result np.ndarray for COCOeval
     formate: imgidx x1y1wh score class
-    '''
+    """
     assert model.istraining is False,'Model should be set as evaluation states'
     loader = DataLoader(dataset,shuffle=False,batch_size=config.batch_size, collate_fn=OD_default_collater)
     model.eval()
@@ -110,7 +125,7 @@ def model_eval_loss(model, pthfilename, dataset, batchsize=4, device=cfg.pre_dev
     print("evluation complete:",time()-starttime,'s')
     print(pthfilename+'loss:', losses / lenth)
 
-def inference_dataset_visualization(dataset:CrowdHDataset, sign, model, config=cfg):
+def inference_dataset_visualization(dataset:CocoDataset, sign, model, config=cfg):
     '''
     use to inference img from a CrowdHdataset like dataset
     '''
@@ -134,7 +149,7 @@ def inference_dataset_visualization(dataset:CrowdHDataset, sign, model, config=c
 
 def inference_single_visualization(img:str, model, config=cfg, thickness=3):
     '''
-    use to inference img from a outside image file.
+    use to inference img from an outside image file.
     '''
     ori_img = cv2.imread(img)
     if not isinstance(ori_img,np.ndarray):
