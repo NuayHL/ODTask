@@ -14,7 +14,7 @@ from training.config import cfg
 from models.nms import NMS
 from models.anchor import generateAnchors
 from data.trandata import load_single_inferencing_img
-from data.eval import Results
+from training.eval import Results
 
 from torch.distributed import get_rank, is_initialized
 
@@ -38,7 +38,7 @@ class YOLOv3(nn.Module):
             self.device = config.pre_device
         if isinstance(anchors, np.ndarray):
             anchors = torch.from_numpy(anchors)
-        self.loss = loss(device=self.device)
+        self.loss = loss(device=self.device, use_focal=False)
         self._pre_anchor(anchors)
         self.istraining = istrainig
         self.softmax = nn.Softmax(dim=1)

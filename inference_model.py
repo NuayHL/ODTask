@@ -1,13 +1,11 @@
 import numpy as np
 
-from models.resnet import resnet50
 from models.yolo import YOLOv3
-from data.eval import model_inference_coconp
+from training.eval import model_inference_coconp, model_load_gen
 from data.trandata import CocoDataset, Resizer, Normalizer
-from training.running import model_load_gen
 from torchvision.transforms import Compose
 
-dataset = CocoDataset("CrowdHuman/annotation_val_coco_style.json", "CrowdHuman/Images_val",
+dataset = CocoDataset("CrowdHuman/annotation_val_vbox_coco_style.json", "CrowdHuman/Images_val",
                       transform=Compose([Normalizer(), Resizer()]))
 
 model = YOLOv3(numofclasses=1, backbone=None, istrainig=False)

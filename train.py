@@ -1,6 +1,8 @@
 import os
 import torch
 from torchvision import transforms
+
+import training.eval
 import training.running as run
 import torch.distributed as dist
 import torch.multiprocessing as mp
@@ -45,7 +47,7 @@ def training_process_checkpoint(rank, world_size, config):
     loader = DataLoader(dataset, batch_size=config.batch_size, sampler=ddsampler, collate_fn=OD_default_collater)
 
     model = YOLOv3(numofclasses=1, istrainig=True, backbone=resnet50, config=config, pretrained=True)
-    model = run.model_load_gen(model, file, parallel_trained=True)
+    model = training.eval.model_load_gen(model, file, parallel_trained=True)
     model = torch.nn.SyncBatchNorm.convert_sync_batchnorm(model).to(rank)
     ddp_model = DDP(model, device_ids=[rank], output_device=rank)
 

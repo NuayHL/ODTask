@@ -1,5 +1,6 @@
 import datetime
 import logging
+import sys
 
 def mylogger(name: str, rank=0, is_initialized=False):
     logger = logging.getLogger(name)
@@ -29,3 +30,16 @@ def mylogger(name: str, rank=0, is_initialized=False):
         logger.addHandler(ch)
 
     return logger
+
+# for fun
+def printlogto(filename, file_path="trainingLog/"):
+    def change_std_out(fun):
+        def decoratedFun(*args, **kwargs):
+            ori_stdout = sys.stdout
+            with open(file_path+filename, "a") as f:
+                sys.stdout = f
+                returned = fun(*args, **kwargs)
+                sys.stdout = ori_stdout
+            return returned
+        return decoratedFun
+    return change_std_out

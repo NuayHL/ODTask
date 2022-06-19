@@ -1,27 +1,19 @@
 import numpy as np
-from util.visualization import show_bbox
-from data.trandata import CocoDataset, Resizer
-from data.eval import inference_dataset_visualization
-from models.resnet import resnet50
+from data.trandata import CocoDataset
+from training.eval import coco_eval, model_load_gen
 from models.yolo import YOLOv3
-from training.running import model_load_gen
-from torchvision.transforms import Compose
-from pycocotools.coco import COCO
-from pycocotools.cocoeval import COCOeval
 from training.config import cfg
 
 config = cfg
-id = 1010
 
-gtnp = np.load('CrowdHuman/70E_8B_800_1024_Darknet53_E35_0.7.npy')
+val_dataset = CocoDataset("CrowdHuman/annotation_val_vbox_coco_style.json","CrowdHuman/Images_val")
 
-gt = COCO("CrowdHuman/annotation_val_coco_style.json")
+model = YOLOv3(numofclasses=1, backbone=None)
 
-dt = gt.loadRes(gtnp)
+model =  model_load_gen(model, "70E_8B_800_1024_darknet53_from55_E100").cuda()
 
-eval = COCOeval(gt, dt, 'bbox')
-eval.evaluate()
-eval.accumulate()
-eval.summarize()
+coco_eval(model, val_dataset,
+          logname="newtestlog",resultnp=np.load("Default.npy"))
+
 
 

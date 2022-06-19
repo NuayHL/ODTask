@@ -80,7 +80,7 @@ def odgt2coco(filepath, outputname, type):
                 bbox_id += 1
                 area = bbox['vbox'][2] * bbox['vbox'][3] #vbox area
                 bbox_info={"id":bbox_id,"image_id":id,"category_id":1,
-                           "bbox":bbox["vbox"],"fbox":bbox["fbox"],"hbox":bbox["hbox"],
+                           "vbox":bbox["vbox"],"bbox":bbox["fbox"],"hbox":bbox["hbox"],
                            "area":area, "iscrowd":0}
                 if "ignore" in bbox["head_attr"].keys() and bbox["head_attr"]["ignore"] == 1: del bbox_info["hbox"]
                 annotations.append(bbox_info)
@@ -249,6 +249,6 @@ def load_single_inferencing_img(img, device=cfg.pre_device):
     return img.to(device)
 
 if __name__ == '__main__':
-    odgt2coco("CrowdHuman/annotation_val.odgt", "annotation_val_coco_style", "val")
-    odgt2coco("CrowdHuman/annotation_train.odgt","annotation_train_coco_style","train")
+    odgt2coco("CrowdHuman/annotation_val.odgt", "annotation_val_fbox_coco_style", "val")
+    #odgt2coco("CrowdHuman/annotation_train.odgt","annotation_train_coco_style","train")
 

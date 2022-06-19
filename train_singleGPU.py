@@ -1,4 +1,6 @@
 from torchvision import transforms
+
+import training.eval
 from data.trandata import CocoDataset, OD_default_collater, Augmenter, Normalizer, Resizer
 from torch.utils.data import DataLoader
 import training.running as run
@@ -23,9 +25,9 @@ def training_single(config=cfg):
     run.training(model, loader, _cfg=config, logname="test_new_dataset",ending_epoch=endepoch)
 
 def training_single_checkpoint(config=cfg):
-    startepoch = 40
-    endepoch = 60
-    file = '70E_4B_800_1024_resnet50_4nd_continue_gpu0_E40'
+    startepoch = 95
+    endepoch = 100
+    file = '70E_8B_800_1024_darknet53_from55_E95'
 
     dataset = CocoDataset("CrowdHuman/annotation_train_coco_style.json",
                           "CrowdHuman/Images_train",
@@ -35,13 +37,13 @@ def training_single_checkpoint(config=cfg):
     loader = DataLoader(dataset, batch_size=config.batch_size,
                         shuffle=True, collate_fn=OD_default_collater)
 
-    model = YOLOv3(numofclasses=1, istrainig=True, backbone=resnet50,
+    model = YOLOv3(numofclasses=1, istrainig=True, backbone=None,
                    config=config)
-    model = run.model_load_gen(model, file, parallel_trained=True)
+    model = training.eval.model_load_gen(model, file, parallel_trained=False)
     model = model.to(config.pre_device)
 
-    run.training(model, loader, _cfg=config, logname="resnet50_4nd_n",
+    run.training(model, loader, _cfg=config, logname="darknet53_from55",
                  starting_epoch=startepoch, ending_epoch=endepoch)
 
 if __name__ == "__main__":
-    training_single(cfg)
+    training_single_checkpoint(cfg)

@@ -1,7 +1,9 @@
 import numpy as np
 import cv2
+import sys
 import json
 import torch
+from torch import nn as nn
 from torch.utils.data import DataLoader
 from pycocotools.cocoeval import COCOeval
 from pycocotools.coco import COCO
@@ -9,8 +11,7 @@ from util.visualization import show_bbox
 from copy import deepcopy
 from data.trandata import CocoDataset, OD_default_collater
 from training.config import cfg
-from util.primary import progressbar
-from training.running import model_load_gen
+from util.primary import progressbar, DDPsavetoNormal
 from time import time
 
 class Results():
@@ -47,22 +48,29 @@ class Results():
         output[:,3] = output[:,3] - output[:,1]
         return output
 
-def coco_eval(model, eval_jsonfile, eval_imagefile=None, result_name='Default', config=cfg, np_result=None):
-    if np_result is None:
-        dataset = CocoDataset(eval_jsonfile, eval_imagefile)
+def coco_eval(model, val_dataset:CocoDataset, result_name='Default',logname='',
+              logpath="trainingLog/", result_path="CrowdHuman/",config=cfg, resultnp=None):
+    start = time()
+    if resultnp is None:
         model = model.to(config.pre_device)
         model.eval()
-        resultnp = model_inference_coconp(dataset, model, config=config)
-        np.save(result_name + '.npy', resultnp)
+        resultnp = model_inference_coconp(val_dataset, model, config=config)
+        np.save(result_path + result_name + '.npy', resultnp)
         print("result .npy saved")
 
-    gt = COCO(eval_jsonfile)
-    dt = gt.loadRes(resultnp)
-
-    eval = COCOeval(gt, dt, 'bbox')
-    eval.evaluate()
-    eval.accumulate()
-    eval.summarize()
+    ori_std = sys.stdout
+    with open(logpath+logname+".txt","a") as f:
+        sys.stdout = f
+        print("[["+result_name+"]]:")
+        gt = val_dataset.annotations
+        dt = gt.loadRes(resultnp)
+        eval = COCOeval(gt, dt, 'bbox')
+        eval.evaluate()
+        eval.accumulate()
+        eval.summarize()
+        print("eval_times:%.2fs"%(time()-start))
+        print("\n")
+    sys.stdout = ori_std
 
 def model_inference_coconp(dataset:CocoDataset, model, config=cfg):
     """
@@ -79,6 +87,8 @@ def model_inference_coconp(dataset:CocoDataset, model, config=cfg):
     for idx, batch in enumerate(loader):
         if torch.cuda.is_available():
             imgs = batch['imgs'].to(config.pre_device)
+        else:
+            imgs = batch['imgs']
         result_list_batch = model(imgs)
         result_list += result_list_batch
         progressbar(float((idx+1)/lenth),barlenth=40)
@@ -171,8 +181,15 @@ def inference_single_visualization(img:str, model, config=cfg, thickness=3):
     show_bbox(ori_img, bboxes, type='x1y1x2y2', score=scores, thickness=thickness)
 
 
+def model_save_gen(model:nn.Module, filename, path="models/model_pth"):
+    torch.save({"GEN":model.state_dict()}, path+"/"+filename+".pt")
 
 
-
-
-
+def model_load_gen(model:nn.Module, filename, path="models/model_pth", parallel_trained=False):
+    state_dict = torch.load(path+"/"+filename+".pt")
+    if parallel_trained:
+        state_dict = DDPsavetoNormal(state_dict["GEN"])
+    else:
+        state_dict = state_dict["GEN"]
+    model.load_state_dict(state_dict)
+    return model
