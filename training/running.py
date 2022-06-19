@@ -64,6 +64,7 @@ def training(model:nn.Module, loader:DataLoader, optimizer=None, scheduler='step
     lenepoch = len(loader)
 
     for i in range(starting_epoch, ending_epoch):
+        model.istraining = True
         model.train()
         if is_initialized():
             loader.sampler.set_epoch(i)
@@ -92,6 +93,7 @@ def training(model:nn.Module, loader:DataLoader, optimizer=None, scheduler='step
             model_save_gen(model, current_state)
             if valdataset != None:
                 logger.warning("Begin Evaluating...")
+                model.istraining = False
                 model.eval()
                 coco_eval(model, valdataset,
                           result_name=current_state, logname=name + "_eval")
