@@ -132,7 +132,7 @@ def model_eval_loss(model, pthfilename, dataset, batchsize=4, device=cfg.pre_dev
         loss = loss.item()
         losses += loss
         progressbar(float((idx + 1) / lenth), barlenth=50)
-    print("evluation complete:",time()-starttime,'s')
+    print("evluation complete:%.2f s"%(time()-starttime))
     print(pthfilename+'loss:', losses / lenth)
 
 def inference_dataset_visualization(dataset:CocoDataset, sign, model, config=cfg):
