@@ -13,7 +13,7 @@ model = YOLOv3(numofclasses=1, backbone=None)
 model =  model_load_gen(model, "70E_8B_800_1024_darknet53_from55_E100").cuda()
 
 coco_eval(model, val_dataset,
-          logname="newtestlog",resultnp=np.load("Default.npy"))
+          logname="newtestlog",resultnp=None)
 
 
 

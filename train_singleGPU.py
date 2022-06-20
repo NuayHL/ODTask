@@ -15,14 +15,16 @@ def training_single(config=cfg):
                           transform=transforms.Compose([Normalizer(),
                                                           Augmenter(),
                                                           Resizer()]))
-    valdataset = CocoDataset("CrowdHuman/annotation_val_vbox_coco_style.json","CrowdHuman/Images_val")
+    valdataset = CocoDataset("CrowdHuman/annotation_val_fbox_coco_style.json",
+                             "CrowdHuman/Images_val",
+                             bbox_type="bbox")
     loader = DataLoader(dataset, batch_size=config.batch_size,
                         shuffle=True, collate_fn=OD_default_collater)
 
     model = YOLOv3(numofclasses=1, istrainig=True, backbone=None,
                    config=config).to(config.pre_device)
 
-    run.training(model, loader, valdataset=valdataset, _cfg=config, logname="Darknet53small")
+    run.training(model, loader, valdataset=valdataset, _cfg=config, logname="Darknet53NoFocal")
 
 def training_single_checkpoint(config=cfg):
     startepoch = 95
@@ -34,6 +36,9 @@ def training_single_checkpoint(config=cfg):
                           transform=transforms.Compose([Normalizer(),
                                                           Augmenter(),
                                                           Resizer()]))
+    valdataset = CocoDataset("CrowdHuman/annotation_val_fbox_coco_style.json",
+                             "CrowdHuman/Images_val",
+                             bbox_type="bbox")
     loader = DataLoader(dataset, batch_size=config.batch_size,
                         shuffle=True, collate_fn=OD_default_collater)
 
@@ -42,7 +47,7 @@ def training_single_checkpoint(config=cfg):
     model = training.eval.model_load_gen(model, file, parallel_trained=False)
     model = model.to(config.pre_device)
 
-    run.training(model, loader, _cfg=config, logname="darknet53_from55",
+    run.training(model, loader, _cfg=config, valdataset=valdataset, logname="darknet53_from55",
                  starting_epoch=startepoch, ending_epoch=endepoch)
 
 if __name__ == "__main__":

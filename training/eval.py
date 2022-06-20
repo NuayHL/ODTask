@@ -51,6 +51,7 @@ class Results():
 def coco_eval(model, val_dataset:CocoDataset, result_name='Default',logname='',
               logpath="trainingLog/", result_path="CrowdHuman/",config=cfg, resultnp=None):
     start = time()
+    # Compute the inference result when it is not given
     if resultnp is None:
         model = model.to(config.pre_device)
         model.eval()
@@ -58,6 +59,7 @@ def coco_eval(model, val_dataset:CocoDataset, result_name='Default',logname='',
         np.save(result_path + result_name + '.npy', resultnp)
         print("result .npy saved")
 
+    # Print the evaluation result to the log
     ori_std = sys.stdout
     with open(logpath+logname+".txt","a") as f:
         sys.stdout = f

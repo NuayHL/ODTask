@@ -142,7 +142,10 @@ class CocoDataset(Dataset):
         self.imgPath = imgFilePath + "/"
         self.annotations = COCO(annotationPath)
         self.image_id = self.annotations.getImgIds()
-        self.bbox_type = bbox_type
+        if bbox_type is None:
+            self.bbox_type = bbox_type
+        else:
+            self.bbox_type = bbox_type
         self.transform = transform
 
     def __len__(self):
