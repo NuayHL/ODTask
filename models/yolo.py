@@ -13,7 +13,7 @@ from training.loss import Defaultloss
 from training.config import cfg
 from models.nms import NMS
 from models.anchor import generateAnchors
-from data.trandata import load_single_inferencing_img
+from data.dataset import load_single_inferencing_img
 from training.eval import Results
 
 from torch.distributed import get_rank, is_initialized

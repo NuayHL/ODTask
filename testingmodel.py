@@ -1,4 +1,4 @@
-from data.trandata import CocoDataset, Normalizer, Resizer
+from data.dataset import CocoDataset, Normalizer, Resizer
 from models.yolo import YOLOv3
 from torchvision.transforms import Compose
 from training.eval import model_eval_loss
@@ -16,14 +16,12 @@ if __name__ == '__main__':
 
     model = YOLOv3(numofclasses=1, istrainig=True, backbone=None)
 
-    model_eval_loss(model, "70E_8B_800_1024_darknet53_E5", testset)
-    model_eval_loss(model, "70E_8B_800_1024_darknet53_E10", testset)
-    model_eval_loss(model, "70E_8B_800_1024_darknet53_E15", testset)
-    model_eval_loss(model, "70E_8B_800_1024_darknet53_E20", testset)
-    model_eval_loss(model, "70E_8B_800_1024_darknet53_E25", testset)
-    model_eval_loss(model, "70E_8B_800_1024_darknet53_E30", testset)
-    model_eval_loss(model, "70E_8B_800_1024_darknet53_E35", testset)
-    model_eval_loss(model, "70E_8B_800_1024_darknet53_E40", testset)
-    model_eval_loss(model, "70E_8B_800_1024_darknet53_E45", testset)
-    model_eval_loss(model, "70E_8B_800_1024_darknet53_E50", testset)
-    model_eval_loss(model, "70E_8B_800_1024_darknet53_E55", testset)
+    model_eval_loss(model, "70E_8B_800_1024_darknet53_from55_E60", testset)
+    model_eval_loss(model, "70E_8B_800_1024_darknet53_from55_E65", testset)
+    model_eval_loss(model, "70E_8B_800_1024_darknet53_from55_E70", testset)
+    model_eval_loss(model, "70E_8B_800_1024_darknet53_from55_E75", testset)
+    model_eval_loss(model, "70E_8B_800_1024_darknet53_from55_E80", testset)
+    model_eval_loss(model, "70E_8B_800_1024_darknet53_from55_E85", testset)
+    model_eval_loss(model, "70E_8B_800_1024_darknet53_from55_E90", testset)
+    model_eval_loss(model, "70E_8B_800_1024_darknet53_from55_E95", testset)
+    model_eval_loss(model, "70E_8B_800_1024_darknet53_from55_E100", testset)

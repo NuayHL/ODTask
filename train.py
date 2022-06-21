@@ -10,7 +10,7 @@ from torch.nn.parallel import DistributedDataParallel as DDP
 from models.yolo import YOLOv3
 from models.resnet import resnet50
 
-from data.trandata import CocoDataset, OD_default_collater, Augmenter, Normalizer, Resizer
+from data.dataset import CocoDataset, OD_default_collater, Augmenter, Normalizer, Resizer
 from torch.utils.data import DataLoader
 from training.config import cfg
 

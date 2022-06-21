@@ -62,7 +62,6 @@ def training(model:nn.Module, loader:DataLoader, optimizer=None, scheduler='step
 
     # begin training
     lenepoch = len(loader)
-
     for i in range(starting_epoch, ending_epoch):
         model.istraining = True
         model.train()
@@ -79,6 +78,7 @@ def training(model:nn.Module, loader:DataLoader, optimizer=None, scheduler='step
         scheduler.step()
         current_state = name+"_E"+str(i+1)
 
+        # Saving models or Evaluating when certain Epoch
         if i+1 == ending_epoch:
             if ending_epoch==_cfg.trainingEpoch:
                 logger.warning("Congratulations! Training complete. Saving Models!")

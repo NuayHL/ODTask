@@ -1,7 +1,7 @@
 from torchvision import transforms
 
 import training.eval
-from data.trandata import CocoDataset, OD_default_collater, Augmenter, Normalizer, Resizer
+from data.dataset import CocoDataset, OD_default_collater, Augmenter, Normalizer, Resizer
 from torch.utils.data import DataLoader
 import training.running as run
 

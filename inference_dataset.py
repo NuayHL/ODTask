@@ -8,7 +8,7 @@ os.environ["CUDA_VISIBLE_DEVICES"]  = '0,1'
 "anns":List lenth B, each with np.float32 ann}
 '''
 
-from data.trandata import CocoDataset
+from data.dataset import CocoDataset
 
 from models.yolo import YOLOv3
 from models.resnet import resnet50

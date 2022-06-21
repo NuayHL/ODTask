@@ -1,19 +1,22 @@
 import numpy as np
-from data.trandata import CocoDataset
-from training.eval import coco_eval, model_load_gen
-from models.yolo import YOLOv3
-from training.config import cfg
+from data.dataset import CocoDataset, MixCocoDatset
+from util.visualization import dataset_inspection
 
-config = cfg
+widerdataset = CocoDataset("WiderPerson/widerperson_train_coco_style.json",
+                      "WiderPerson/Images",transform=None, bbox_type="bbox")
 
-val_dataset = CocoDataset("CrowdHuman/annotation_val_vbox_coco_style.json","CrowdHuman/Images_val")
+crowddataset = CocoDataset("CrowdHuman/annotation_train_coco_style.json",
+                          "CrowdHuman/Images_train")
 
-model = YOLOv3(numofclasses=1, backbone=None)
+widerdataset_val = CocoDataset("WiderPerson/widerperson_val_coco_style.json",
+                      "WiderPerson/Images",transform=None, bbox_type="bbox")
+maindatset = MixCocoDatset([crowddataset,widerdataset],None)
 
-model =  model_load_gen(model, "70E_8B_800_1024_darknet53_from55_E100").cuda()
+print(len(maindatset))
+maindatset.addDataset(widerdataset_val)
+print(len(maindatset))
 
-coco_eval(model, val_dataset,
-          logname="newtestlog",resultnp=None)
 
+dataset_inspection(maindatset, 14999)
 
 

@@ -1,10 +1,8 @@
-import json
 import cv2
 import numpy as np
 import torch
 from pycocotools.coco import COCO
 from copy import deepcopy
-from util import progressbar
 from torch.utils.data import Dataset
 from torchvision import transforms
 from training.config import cfg
@@ -16,78 +14,6 @@ preprocess_train = transforms.Compose([
                          std=[0.29044453, 0.28503336, 0.29363019])
 ])
 
-def odgt2coco(filepath, outputname, type):
-    '''
-    :param filepath: origin odgt file
-    :param outputname: the name of output json file
-    :param type: "train" or "val"
-    :return: None
-
-    About the CrowdHuman Dataset:
-    CrowdHuman contains 15000 training imgs,
-                        4370 validation imgs,
-                        5000 testing imgs.
-
-    About COCO format:{
-        "info":{"year"}
-        "images":[image]
-        "annotations":[annotation]
-        "categories":{}
-    }
-    image{
-        "id": int,
-        "width": int,
-        "height": int,
-        "file_name": str
-    }
-    annotation{
-        "id": int,
-        "image_id": int,
-        "category_id": int,
-        "bbox": [x,y,width,height] (vbox),
-        "fbox": (fbox)
-        "hbox": (hbox)
-        "iscrowd": 0 or 1
-    }
-    categories[{
-        "id": int,
-        "name": str,
-        "supercategory": str,
-    }]
-    '''
-    assert type in ["train", "val"], "The type should be \'train\' or \'val\'"
-    if type == "train": num_imgs = 15000
-    else: num_imgs = 4370
-    info = dict()
-    images = []
-    annotations = []
-    categories = json.load(open("data/categories_coco.json"))
-
-    info["year"] = 2018
-    print("begin convert %s dataset annotations to coco format"%type)
-    with open(filepath) as f:
-        id = 0
-        bbox_id=0
-        for sample in f:
-            id += 1
-            img = json.loads(sample)
-            h, w, _ = (cv2.imread("CrowdHuman/Images_"+type+"/"+img["ID"]+".jpg")).shape
-            img_info = {"id":id, "width":w, "height":h, "file_name":img["ID"]}
-            images.append(img_info)
-            for bbox in img["gtboxes"]:
-                if bbox["tag"] == "mask": continue
-                if "ignore" in bbox["extra"].keys() and bbox["extra"]["ignore"] == 1: continue
-                bbox_id += 1
-                area = bbox['vbox'][2] * bbox['vbox'][3] #vbox area
-                bbox_info={"id":bbox_id,"image_id":id,"category_id":1,
-                           "bbox":bbox["vbox"],"fbox":bbox["fbox"],"hbox":bbox["hbox"],
-                           "area":area, "iscrowd":0}
-                if "ignore" in bbox["head_attr"].keys() and bbox["head_attr"]["ignore"] == 1: del bbox_info["hbox"]
-                annotations.append(bbox_info)
-            progressbar(float(id/num_imgs))
-
-    output = {"info":info, "images":images, "annotations":annotations, "categories":categories}
-    json.dump(output, open("CrowdHuman/"+outputname+".json",'w'))
 
 class Normalizer():
     def __init__(self):
@@ -135,7 +61,7 @@ class CocoDataset(Dataset):
         Default: id = idx + 1
         Always right: id = self.image_id[idx] (adopted)
     '''
-    def __init__(self, annotationPath, imgFilePath, bbox_type=cfg.input_bboxtype,
+    def __init__(self, annotationPath, imgFilePath, bbox_type=None,
                  transform=transforms.Compose([Normalizer(), Resizer()])):
         super(CocoDataset, self).__init__()
         self.jsonPath = annotationPath
@@ -143,7 +69,7 @@ class CocoDataset(Dataset):
         self.annotations = COCO(annotationPath)
         self.image_id = self.annotations.getImgIds()
         if bbox_type is None:
-            self.bbox_type = bbox_type
+            self.bbox_type = cfg.input_bboxtype
         else:
             self.bbox_type = bbox_type
         self.transform = transform
@@ -211,6 +137,34 @@ class CocoDataset(Dataset):
                 return idx, self.annotations.imgs[idx+1]["id"]
         raise KeyError('Can not find img with name %s'%str)
 
+class MixCocoDatset(Dataset):
+    """
+    Used for combining different dataset together.
+    """
+    def __init__(self, datasets: [CocoDataset], transform=transforms.Compose([Normalizer(), Resizer()])):
+        super(MixCocoDatset, self).__init__()
+        self.cocodataset = datasets
+        self.divids = [0]
+        for i, dataset in enumerate(self.cocodataset):
+            dataset.transform = transform
+            self.divids.append(len(dataset)+self.divids[i])
+
+    def addDataset(self, dataset:CocoDataset):
+        self.cocodataset.append(dataset)
+        self.divids.append(len(dataset)+self.divids[-1])
+
+    def __len__(self):
+        lenth = 0
+        for dataset in self.cocodataset:
+            lenth += len(dataset)
+        return lenth
+
+    def __getitem__(self, idx):
+        for i in range(len(self.divids)-1):
+            if idx>=self.divids[i] and idx<self.divids[i+1]:
+                return self.cocodataset[i][idx-self.divids[i]]
+        return self.cocodataset[-1][idx-self.divids[-1]]
+
 
 def OD_default_collater(data):
     '''
@@ -251,7 +205,4 @@ def load_single_inferencing_img(img, device=cfg.pre_device):
     img = torch.unsqueeze(img, dim=0)
     return img.to(device)
 
-if __name__ == '__main__':
-    odgt2coco("CrowdHuman/annotation_val.odgt", "annotation_val_fbox_coco_style", "val")
-    #odgt2coco("CrowdHuman/annotation_train.odgt","annotation_train_coco_style","train")
 

@@ -9,7 +9,7 @@ from pycocotools.cocoeval import COCOeval
 from pycocotools.coco import COCO
 from util.visualization import show_bbox
 from copy import deepcopy
-from data.trandata import CocoDataset, OD_default_collater
+from data.dataset import CocoDataset, OD_default_collater
 from training.config import cfg
 from util.primary import progressbar, DDPsavetoNormal
 from time import time
