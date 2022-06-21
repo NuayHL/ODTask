@@ -52,4 +52,13 @@ Label Assign是训练过程的一个关键步骤，和目标函数一起决定�
     动态threshold。
     每层按距离选取前k个sample，全部计算IOU的mean和std。计算threshold=mean+std
 
+
 ## **Dense & Sparse Detector**
+## **Data Argumentation**
+### 1. Color Jitter
+### 2. Horizontal Filp
+### 3. 
+
+## **ROI Pooling & ROI Align**
+对ROI快速池化，或者更加精细的池化（例如双线性差值避免损失数据）
+Old fashioned method used in Fast-Rcnn series.
