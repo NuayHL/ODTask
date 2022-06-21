@@ -17,11 +17,11 @@ from training.eval import inference_dataset_visualization, model_load_gen
 
 id = 2555
 
-dataset = CocoDataset("CrowdHuman/annotation_train_coco_style.json","CrowdHuman/Images_train")
+dataset = CocoDataset("CrowdHuman/annotation_train_coco_style.json","CrowdHuman/Images_train",transform=None)
 #dataset = CocoDataset("CrowdHuman/annotation_val_vbox_coco_style.json")
 
-model = YOLOv3(numofclasses=1,backbone=resnet50)
-model = model_load_gen(model, "70E_8B_800_1024_resnet50_4nd_E60",parallel_trained=False)
+model = YOLOv3(numofclasses=1,backbone=None)
+model = model_load_gen(model, "70E_8B_800_1024_darknet53_from55_E100",parallel_trained=False)
 model = model.to(cfg.pre_device)
 
 inference_dataset_visualization(dataset, id, model)

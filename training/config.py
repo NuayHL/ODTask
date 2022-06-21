@@ -42,5 +42,5 @@ class Config():
         else:
             return "cpu"
 
-cfg = Config("training/cfg/config_train.yaml")
+cfg = Config("training/cfg/config.yaml")
 

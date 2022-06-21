@@ -44,7 +44,7 @@ def txt2coco(filepaths: list, outputname):
     categories = json.load(open("data/categories_coco.json"))
 
     info["year"] = 2019
-    print("begin convert WiderPerson dataset annotations to coco format")
+    print("begin convert %s to coco format"%filepaths)
 
     imageinfo = []
     for path in filepaths:

@@ -95,7 +95,7 @@ class YOLOv3(nn.Module):
                 real_result = None
             else:
                 self._xywh_to_x1y1x2y2(result_ib[:,:4])
-                fin_list = batched_nms(result_ib[:,:4], result_ib[:,4], result_ib[:,5], self.config.nms_threshold)
+                fin_list = self.nms(result_ib, self.config.nms_threshold)
                 real_result = Results(result_ib[fin_list].detach().cpu())
             result_list.append(real_result)
 
