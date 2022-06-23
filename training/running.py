@@ -24,13 +24,13 @@ def training(model:nn.Module, loader:DataLoader, optimizer=None, scheduler='step
     :return:
     '''
     if optimizer==None:
-        optimizer = optim.Adam(model.parameters(),lr=0.0015)
+        optimizer = optim.Adam(model.parameters(),lr=0.01)
     else:
         optimizer = optimizer(model.parameters(), **kwargs)
     if scheduler is None:
         scheduler = 'steplr'
     if scheduler=='steplr':
-        scheduler = sche.MultiStepLR(optimizer, milestones=[85, 95], gamma=0.1)
+        scheduler = sche.MultiStepLR(optimizer, milestones=[5, 85, 95], gamma=0.1)
     # elif scheduler=='cosineRestarts':
     #     scheduler = CosineAnnealingWarmupRestarts(optimizer, first_cycle_steps=20, max_lr=0.1, min_lr=0.0001, warmup_steps=5, gamma=0.8 )
     else:

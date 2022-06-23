@@ -42,6 +42,6 @@ class Config():
         else:
             return "cpu"
 
-yaml_file = "YOLOv3_Darknet53_800_1024_vbox.yaml"
+yaml_file = "YOLOv3_Darknet53_608_608_fbox_crowdhuman_widerperson.yaml"
 cfg = Config("training/cfg/"+yaml_file)
 
