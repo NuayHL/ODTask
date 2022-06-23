@@ -76,6 +76,6 @@ def odgt2coco(filepath, outputname, type):
     json.dump(output, open("CrowdHuman/"+outputname+".json",'w'))
 
 if __name__ == '__main__':
-    odgt2coco("CrowdHuman/annotation_val.odgt", "annotation_val_fbox_coco_style", "val")
+    odgt2coco("CrowdHuman/annotation_val.odgt", "annotation_val_coco_style", "val")
     #odgt2coco("CrowdHuman/annotation_train.odgt","annotation_train_coco_style","train")
 

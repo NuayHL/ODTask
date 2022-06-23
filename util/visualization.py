@@ -149,7 +149,7 @@ def draw_loss_epoch(file_name, num_in_epoch, outputImgName="loss per epoch", log
     with open(logpath+"/"+file_name,"r") as f:
         losses = f.readlines()
         epoch_loss = 0
-        epoch_count = 0
+        epoch_count = 1
         start_idx = 0
         loss_list = []
         index = []
@@ -176,3 +176,57 @@ def draw_loss_epoch(file_name, num_in_epoch, outputImgName="loss per epoch", log
 
     fig.savefig(savepath+"/"+file_name+"_"+outputImgName+".png")
     plt.show()
+
+def draw_coco_eval(file_name,save_per_epoch=5, outputImgName="evaluation", logpath="trainingLog", savepath="trainingLog/lossV"):
+
+    index = []
+    iou = []
+    iou_50 = []
+    iou_75 = []
+    iou_small = []
+    iou_medium = []
+    iou_large = []
+    start_index = save_per_epoch
+
+    with open(logpath+'/'+file_name,"r") as f:
+        lines = f.readlines()
+    flag = 0
+    for line in lines:
+        if "Acc" in line: flag = 1
+        elif flag == 1:
+            index.append(start_index)
+            start_index += save_per_epoch
+            flag += 1
+        elif flag == 2:
+            iou.append(float(line[-5:]))
+            flag += 1
+        elif flag == 3:
+            iou_50.append(float(line[-5:]))
+            flag += 1
+        elif flag == 4:
+            iou_75.append(float(line[-5:]))
+            flag += 1
+        elif flag == 5:
+            iou_small.append(float(line[-5:]))
+            flag += 1
+        elif flag == 6:
+            iou_medium.append(float(line[-5:]))
+            flag += 1
+        elif flag == 7:
+            iou_large.append(float(line[-5:]))
+            flag = 0
+
+    fig, ax = plt.subplots()
+    ax.plot(index, iou)
+    ax.plot(index, iou_50)
+    ax.plot(index, iou_75)
+    ax.plot(index, iou_small)
+    ax.plot(index, iou_medium)
+    ax.plot(index, iou_large)
+    ax.set(xlabel="Epochs",ylabel="AP",title="Evaluation for "+file_name)
+    ax.grid()
+    fig.legend(["IoU","IoU.5","IoU.75","IoUs","IoUm","IoUl"])
+    fig.savefig(savepath+"/"+file_name+"_"+outputImgName+".png")
+    plt.show()
+
+
