@@ -23,8 +23,9 @@ def training_single(config=cfg):
     valdataset = CocoDataset("CrowdHuman/annotation_val_fbox_coco_style.json",
                              "CrowdHuman/Images_val",
                              bbox_type="bbox")
+    print(len(mixdataset))
     loader = DataLoader(mixdataset, batch_size=config.batch_size,
-                        shuffle=True, collate_fn=OD_default_collater)
+                        shuffle=False, collate_fn=OD_default_collater)
 
     model = YOLOv3(numofclasses=1, istrainig=True, backbone=None,
                    config=config).to(config.pre_device)

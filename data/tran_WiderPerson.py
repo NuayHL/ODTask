@@ -2,6 +2,8 @@ import json
 import cv2
 from util import progressbar
 
+# img 011765 is delete due to the wrong annotation
+
 def txt2coco(filepaths: list, outputname):
     '''
     :param filepaths: pathfile list
@@ -57,6 +59,7 @@ def txt2coco(filepaths: list, outputname):
         id = idx + 1
         if imgname[-1] == "\n":
             imgname = imgname[:-1]
+        if imgname == "011765": continue
         h, w, _ = (cv2.imread("WiderPerson/Images/"+imgname+".jpg")).shape
         img_info = {"id":id, "width":w, "height":h, "file_name":imgname}
         images.append(img_info)

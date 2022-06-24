@@ -1,3 +1,4 @@
+import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
 from .config import cfg
@@ -71,6 +72,15 @@ def training(model:nn.Module, loader:DataLoader, optimizer=None, scheduler='step
             optimizer.zero_grad()
             batch["imgs"] = batch["imgs"].to(rank)
             loss = model(batch)
+            if torch.isinf(loss) or torch.isnan(loss):
+                logger.error("Detects inf/nan Loss!")
+                with open(name+"_Fatal_error.txt","a") as f:
+                    for ann in batch['anns']:
+                        print("local batch:",file = f)
+                        for sann in ann:
+                            print(sann, file = f)
+                        print("\n",file = f)
+                continue
             loss.backward()
             optimizer.step()
             logger.info("epoch "+str(i+1)+"/"+str(_cfg.trainingEpoch)+":"+str(idx+1)+"/"+str(lenepoch)
@@ -95,7 +105,11 @@ def training(model:nn.Module, loader:DataLoader, optimizer=None, scheduler='step
                 logger.warning("Begin Evaluating...")
                 model.istraining = False
                 model.eval()
-                coco_eval(model, valdataset,
-                          result_name=current_state, logname=name + "_eval")
+                try:
+                    coco_eval(model, valdataset,
+                            result_name=current_state, logname=name + "_eval")
+                except:
+                    logger.warning("Evaluation ERROR!")
+                    continue
                 logger.warning("Evaluating Complete!")
 
