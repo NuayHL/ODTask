@@ -31,7 +31,7 @@ def training(model:nn.Module, loader:DataLoader, optimizer=None, scheduler='step
     if scheduler is None:
         scheduler = 'steplr'
     if scheduler=='steplr':
-        scheduler = sche.MultiStepLR(optimizer, milestones=[5, 85, 95], gamma=0.1)
+        scheduler = sche.MultiStepLR(optimizer, milestones=[5, 75], gamma=0.1)
     # elif scheduler=='cosineRestarts':
     #     scheduler = CosineAnnealingWarmupRestarts(optimizer, first_cycle_steps=20, max_lr=0.1, min_lr=0.0001, warmup_steps=5, gamma=0.8 )
     else:
@@ -72,15 +72,19 @@ def training(model:nn.Module, loader:DataLoader, optimizer=None, scheduler='step
             optimizer.zero_grad()
             batch["imgs"] = batch["imgs"].to(rank)
             loss = model(batch)
+
+            #if abnormal detects in training loss
             if torch.isinf(loss) or torch.isnan(loss):
                 logger.error("Detects inf/nan Loss!")
                 with open(name+"_Fatal_error.txt","a") as f:
+                    print("epoch "+str(i+1)+"/"+str(_cfg.trainingEpoch)+":"+str(idx+1)+"/"+str(lenepoch),file = f)
                     for ann in batch['anns']:
                         print("local batch:",file = f)
                         for sann in ann:
                             print(sann, file = f)
                         print("\n",file = f)
                 continue
+
             loss.backward()
             optimizer.step()
             logger.info("epoch "+str(i+1)+"/"+str(_cfg.trainingEpoch)+":"+str(idx+1)+"/"+str(lenepoch)
