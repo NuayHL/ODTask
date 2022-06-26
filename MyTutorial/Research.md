@@ -8,7 +8,6 @@
 
 ## **Focal Loss**
 来源于17年的文章，主要是为了平衡正负样本在训练时候的分布。
-什么是正负样本
 
 ## **需要做到**
     
@@ -17,6 +16,13 @@
     定义损失函数和优化器
     可视化各种指标 
     计算在验证集上的指标
+
+*该阶段任务已经完成
+
+## **需要做到**
+    
+    学习nms label assignment 的改进
+    加入更多的网络基础组件及loss组件
 
 ## **mAP**
 ### Average Prcision
@@ -62,3 +68,5 @@ Label Assign是训练过程的一个关键步骤，和目标函数一起决定�
 ## **ROI Pooling & ROI Align**
 对ROI快速池化，或者更加精细的池化（例如双线性差值避免损失数据）
 Old fashioned method used in Fast-Rcnn series.
+
+

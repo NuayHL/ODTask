@@ -183,15 +183,34 @@ def inference_single_visualization(img:str, model, config=cfg, thickness=3):
     show_bbox(ori_img, bboxes, type='x1y1x2y2', score=scores, thickness=thickness)
 
 
-def model_save_gen(model:nn.Module, filename, path="models/model_pth"):
-    torch.save({"GEN":model.state_dict()}, path+"/"+filename+".pt")
+def model_save_gen(model:nn.Module, filename, last_epoch, optimizer=None, scheduler=None, path="models/model_pth"):
+    save_dict = {"GEN":model.state_dict()}
+    save_dict["last_epoch"] = last_epoch
+    if optimizer is not None:
+        save_dict["optimizer"] = optimizer.state_dict()
+    if scheduler is not None:
+        save_dict["scheduler"] = scheduler.state_dict()
+    torch.save(save_dict, path+"/"+filename+".pt")
 
 
-def model_load_gen(model:nn.Module, filename, path="models/model_pth", parallel_trained=False):
+def model_load_gen(model:nn.Module, filename, optimizer=None, scheduler=None,
+                   path="models/model_pth", parallel_trained=False):
+    """
+    return model, optimizer, scheduler, last_epoch
+    """
     state_dict = torch.load(path+"/"+filename+".pt")
     if parallel_trained:
-        state_dict = DDPsavetoNormal(state_dict["GEN"])
+        model_dict = DDPsavetoNormal(state_dict["GEN"])
     else:
-        state_dict = state_dict["GEN"]
-    model.load_state_dict(state_dict)
-    return model
+        model_dict = state_dict["GEN"]
+    model.load_state_dict(model_dict, strict=True)
+    if optimizer is not None:
+        try: optimizer.load_state_dict(state_dict["optimizer"], strict=True)
+        except:
+            print("Optimizer Dict not FOUND or MISMATCH!")
+
+    if scheduler is not None:
+        try: scheduler.load_state_dict(state_dict["scheduler"], strict=True)
+        except:
+            print("Scheduler Dict not FOUND or MISMATCH!")
+    return model, optimizer, scheduler, state_dict["last_epoch"]

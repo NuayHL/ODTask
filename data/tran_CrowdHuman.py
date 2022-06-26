@@ -30,9 +30,10 @@ def odgt2coco(filepath, outputname, type):
         "id": int,
         "image_id": int,
         "category_id": int,
-        "bbox": [x,y,width,height] (vbox),
-        "fbox": (fbox)
+        "bbox": [x,y,width,height] (fbox),
+        "vbox": (vbox)
         "hbox": (hbox)
+        "area": area of bbox
         "iscrowd": 0 or 1
     }
     categories[{
@@ -64,9 +65,9 @@ def odgt2coco(filepath, outputname, type):
                 if bbox["tag"] == "mask": continue
                 if "ignore" in bbox["extra"].keys() and bbox["extra"]["ignore"] == 1: continue
                 bbox_id += 1
-                area = bbox['vbox'][2] * bbox['vbox'][3] #vbox area
+                area = bbox['fbox'][2] * bbox['fbox'][3] #fbox area
                 bbox_info={"id":bbox_id,"image_id":id,"category_id":1,
-                           "bbox":bbox["vbox"],"fbox":bbox["fbox"],"hbox":bbox["hbox"],
+                           "bbox":bbox["fbox"],"vbox":bbox["vbox"],"hbox":bbox["hbox"],
                            "area":area, "iscrowd":0}
                 if "ignore" in bbox["head_attr"].keys() and bbox["head_attr"]["ignore"] == 1: del bbox_info["hbox"]
                 annotations.append(bbox_info)
@@ -77,5 +78,5 @@ def odgt2coco(filepath, outputname, type):
 
 if __name__ == '__main__':
     odgt2coco("CrowdHuman/annotation_val.odgt", "annotation_val_coco_style", "val")
-    #odgt2coco("CrowdHuman/annotation_train.odgt","annotation_train_coco_style","train")
+    odgt2coco("CrowdHuman/annotation_train.odgt","annotation_train_coco_style","train")
 

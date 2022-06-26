@@ -1,16 +1,23 @@
-import scipy.io as scio
-import numpy as np
+import torch.optim.lr_scheduler as sche
+import torch.optim as optim
+import torch.nn as nn
 
-from data.dataset import CocoDataset
-from util.visualization import dataset_inspection
+class Fu(nn.Module):
+    def __init__(self):
+        super(Fu, self).__init__()
+        self.linear1 = nn.Linear(100,10)
+        self.softmax = nn.Softmax(dim=1)
 
-dataset2 = CocoDataset("WiderPerson/widerperson_all_coco_style.json",
-                       "WiderPerson/Images", bbox_type="bbox",transform=None)
+    def forward(self,x):
+        x = self.linear1(x)
+        x = self.softmax(x)
+        return x
 
-id = 4573
+model = Fu()
 
-sampel = dataset2[id]
+opt = optim.Adam(model.parameters(), lr=0.001)
+sch = sche.MultiStepLR(opt, [5], 0.1)
 
-print(sampel["anns"])
-
-dataset_inspection(dataset2, id)
+print(model.state_dict())
+print(opt.state_dict())
+print(sch.state_dict())

@@ -2,6 +2,7 @@ import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 import torch
+from functools import wraps
 
 from models.anchor import generateAnchors
 from training.assign import AnchAssign
@@ -12,6 +13,7 @@ def _isArrayLike(obj):
 
 # decorator for tran img
 def tran_img(fun):
+    @wraps(fun)
     def finfun(img, *args, **kwargs):
         if isinstance(img, str):
             img = cv2.imread(img)
