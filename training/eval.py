@@ -193,7 +193,7 @@ def model_save_gen(model:nn.Module, filename, last_epoch, optimizer=None, schedu
     torch.save(save_dict, path+"/"+filename+".pt")
 
 
-def model_load_gen(filename, model:nn.Module, optimizer=None, scheduler=None,
+def model_load_gen(filename, starting_epoch, model:nn.Module, optimizer=None, scheduler=None,
                    path="models/model_pth", parallel_trained=False):
     """
     return model, optimizer, scheduler, last_epoch
@@ -216,6 +216,6 @@ def model_load_gen(filename, model:nn.Module, optimizer=None, scheduler=None,
 
     if "last_epoch" in state_dict.keys():
         last_epoch = state_dict["last_epoch"]
-    else: last_epoch = 0
+    else: last_epoch = starting_epoch
 
     return model, optimizer, scheduler, last_epoch
