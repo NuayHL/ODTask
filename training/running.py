@@ -117,7 +117,7 @@ def training(model:nn.Module, loader:DataLoader, optimizer=None, scheduler='step
                 logger.warning("Begin Evaluating...")
                 model.eval()
                 try:
-                    coco_eval(model, valdataset,
+                    coco_eval(model, valdataset, device=rank,
                             result_name=current_state, logname=name + "_eval")
                 except:
                     logger.warning("Evaluation ERROR!")

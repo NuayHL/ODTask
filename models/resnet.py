@@ -14,9 +14,10 @@ pre_trained_path = {'resnet18':"models/resnet_per_trained/resnet18-5c106cde.pth"
 
 class ResNet(nn.Module):
 
-    def __init__(self, num_classes, block, layers):
+    def __init__(self, num_classes, block, layers, yolo_use=True):
         self.inplanes = 64
         super(ResNet, self).__init__()
+        self.yolo_use = yolo_use
         self.conv1 = nn.Conv2d(3, 64, kernel_size=7, stride=2, padding=3, bias=False)
         self.bn1 = nn.BatchNorm2d(64)
         self.relu = nn.ReLU(inplace=True)
@@ -25,9 +26,11 @@ class ResNet(nn.Module):
         self.layer2 = self._make_layer(block, 128, layers[1], stride=2)
         self.layer3 = self._make_layer(block, 256, layers[2], stride=2)
         self.layer4 = self._make_layer(block, 512, layers[3], stride=2)
-        self.to_yolo_f3 = nn.Conv2d(512, 256, kernel_size=1, bias=False)
-        self.to_yolo_f4 = nn.Conv2d(1024, 512, kernel_size=1, bias=False)
-        self.to_yolo_f5 = nn.Conv2d(2048, 1024, kernel_size=1, bias=False)
+
+        if self.yolo_use:
+            self.to_yolo_f3 = nn.Conv2d(512, 256, kernel_size=1, bias=False)
+            self.to_yolo_f4 = nn.Conv2d(1024, 512, kernel_size=1, bias=False)
+            self.to_yolo_f5 = nn.Conv2d(2048, 1024, kernel_size=1, bias=False)
 
         # initialize parameters
         for m in self.modules():
@@ -63,6 +66,8 @@ class ResNet(nn.Module):
                 layer.eval()
 
     def yolo_extract(self, inputs):
+        if self.yolo_use is False:
+            raise RuntimeError("This Resnet backbone setting is not ready for yolo, change your settings!")
         x = self.conv1(inputs)
         x = self.bn1(x)
         x = self.relu(x)
@@ -76,6 +81,19 @@ class ResNet(nn.Module):
         x2 = self.to_yolo_f3(x2)
         x3 = self.to_yolo_f4(x3)
         x4 = self.to_yolo_f5(x4)
+
+        return x4, x3, x2
+
+    def retina_extract(self, inputs):
+        x = self.conv1(inputs)
+        x = self.bn1(x)
+        x = self.relu(x)
+        x = self.maxpool(x)
+
+        x1 = self.layer1(x)
+        x2 = self.layer2(x1)
+        x3 = self.layer3(x2)
+        x4 = self.layer4(x3)
 
         return x4, x3, x2
 

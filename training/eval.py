@@ -49,13 +49,15 @@ class Results():
         return output
 
 def coco_eval(model, val_dataset:CocoDataset, result_name='Default',logname='',
-              logpath="trainingLog/", result_path="CrowdHuman/",config=cfg, resultnp=None):
+              logpath="trainingLog/", result_path="CrowdHuman/",config=cfg, device=None, resultnp=None):
     start = time()
     # Compute the inference result when it is not given
+    if device is None:
+        device = config.pre_device
     if resultnp is None:
-        model = model.to(config.pre_device)
+        model = model.to(device)
         model.eval()
-        resultnp = model_inference_coconp(val_dataset, model, config=config)
+        resultnp = model_inference_coconp(val_dataset, model, config=config, device=device)
         np.save(result_path + result_name + '.npy', resultnp)
         print("result .npy saved")
 
@@ -74,12 +76,14 @@ def coco_eval(model, val_dataset:CocoDataset, result_name='Default',logname='',
         print("\n")
     sys.stdout = ori_std
 
-def model_inference_coconp(dataset:CocoDataset, model, config=cfg):
+def model_inference_coconp(dataset:CocoDataset, model, config=cfg, device=None):
     """
     return a result np.ndarray for COCOeval
     formate: imgidx x1y1wh score class
     """
     assert model.training is False,'Model should be set as evaluation states'
+    if device is None:
+        device = config.pre_device
     loader = DataLoader(dataset,shuffle=False,batch_size=config.batch_size, collate_fn=OD_default_collater)
     model.eval()
     result_list = []
@@ -88,7 +92,7 @@ def model_inference_coconp(dataset:CocoDataset, model, config=cfg):
     print('Starting inference.')
     for idx, batch in enumerate(loader):
         if torch.cuda.is_available():
-            imgs = batch['imgs'].to(config.pre_device)
+            imgs = batch['imgs'].to(device)
         else:
             imgs = batch['imgs']
         result_list_batch = model(imgs)
