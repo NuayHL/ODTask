@@ -114,12 +114,12 @@ def _add_bbox_img(img, bboxs=[], type="xywh",color=[0,0,255], score=None, **kwar
         else: a, b = (bbox[0]-int(bbox[2]/2),bbox[1]-int(bbox[3]/2)),(bbox[0]+int(bbox[2]/2),bbox[1]+int(bbox[3]/2))
         img = cv2.rectangle(img,a,b,color, **kwargs)
         if score is not None:
-            text = classname[int(score[idx,1].item())-1]['name']
+            text = classname[int(score[idx,1].item())]['name']
             text += ":%.2f"%score[idx,0]
             point = list(a)
             point[1] += 11
 
-            img = cv2.putText(img, text, point, cv2.FONT_HERSHEY_PLAIN, 1,[0,0,200])
+            img = cv2.putText(img, text, point, cv2.FONT_HERSHEY_PLAIN, 1,[255,255,255])
     return img
 
 def draw_loss(file_name,outputImgName="loss",logpath="trainingLog",savepath="trainingLog/lossV"):

@@ -4,13 +4,13 @@ from torch.utils.data import DataLoader
 from .config import cfg
 from util.mylogger import mylogger
 from util.primary import cfgtoStr
-from training.eval import coco_eval, model_save_gen
+from training.eval import coco_eval, model_save_gen, model_load_gen
 import torch.optim as optim
 import torch.optim.lr_scheduler as sche
 from torch.distributed import is_initialized, get_rank
 
 def training(model:nn.Module, loader:DataLoader, optimizer=None, scheduler='steplr', valdataset=None,
-             logname=None, _cfg=cfg, save_per_epoch=5, starting_epoch=0,ending_epoch=None, **kwargs):
+             logname=None, _cfg=cfg, save_per_epoch=5, starting_epoch=0,ending_epoch=None, checkpth=None, **kwargs):
     '''
     :param model: model for training
     :param loader: dataloader for training
@@ -52,19 +52,20 @@ def training(model:nn.Module, loader:DataLoader, optimizer=None, scheduler='step
     # initialize logger
     logger = mylogger(name,rank, is_initialized())
 
+    # if load from checking points
+    if checkpth is not None:
+        model, optimizer, scheduler, starting_epoch = model_load_gen(checkpth, model, optimizer, scheduler)
+
     # handle check point problem
     if ending_epoch is None:
         ending_epoch = _cfg.trainingEpoch
     assert starting_epoch < ending_epoch,'starting_epoch should smaller or equal to ending_epoch'
 
-    # if load from checking points
-    for i in range(starting_epoch):
-        scheduler.step()
+    model = model.to(_cfg.pre_device)
 
     # begin training
     lenepoch = len(loader)
     for i in range(starting_epoch, ending_epoch):
-        model.istraining = True
         model.train()
         if is_initialized():
             loader.sampler.set_epoch(i)
@@ -104,10 +105,9 @@ def training(model:nn.Module, loader:DataLoader, optimizer=None, scheduler='step
             continue
 
         if rank == 0 or not is_initialized():
-            model_save_gen(model, current_state)
+            model_save_gen(model, current_state, last_epoch=i+1, optimizer=optimizer, scheduler=scheduler)
             if valdataset != None:
                 logger.warning("Begin Evaluating...")
-                model.istraining = False
                 model.eval()
                 try:
                     coco_eval(model, valdataset,

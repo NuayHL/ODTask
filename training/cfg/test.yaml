@@ -1,10 +1,10 @@
 device:
- preprocess: cuda1
+ preprocess: cuda0
 
 input:
- width: 32
- height: 32
- bboxtype: fbox #bbox(vbox)/hbox/fbox
+ height: 512
+ width: 512
+ bboxtype: bbox #bbox(vbox)/hbox/fbox
  batchSize: 4
 
 assign_cfg:
@@ -13,12 +13,14 @@ assign_cfg:
  threshold: 0.5
 
 anchors:
- ratios : [2]
- scales : [0.25]
+ fpnlevels : [3,4,5]
+ ratios : [2,4]
+ scales : [0.75,1]
 
 training:
- epoch : 10
+ epoch : 1
 
 inference:
- background_threshold = 0.5
- class_threshold = 0.5
+ background_threshold : 0.7
+ class_threshold : 0.7
+ nms_threshold : 0.6

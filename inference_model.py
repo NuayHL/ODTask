@@ -6,18 +6,20 @@ from training.eval import model_inference_coconp, model_load_gen, coco_eval
 from data.dataset import CocoDataset, Resizer, Normalizer
 from torchvision.transforms import Compose
 
-dataset = CocoDataset("CrowdHuman/annotation_val_coco_style.json", "CrowdHuman/Images_val",
+dataset = CocoDataset("CrowdHuman/annotation_val_coco_style_1024_800.json", "CrowdHuman/Images_val",
                       transform=Compose([Normalizer(), Resizer()]))
 
-model = YOLOv3(numofclasses=1, backbone=None, istrainig=False)
-model = model_load_gen(model, "70E_8B_800_1024_darknet53_from55_E75",parallel_trained=False)
-model = model.to(0)
+# model = YOLOv3(numofclasses=1, backbone=None, istrainig=False)
+# model = model_load_gen(model, "70E_8B_800_1024_darknet53_from55_E75",parallel_trained=False)
+# model = model.to(0)
+#
+# result = model_inference_coconp(dataset, model)
+#
+# np.save('CrowdHuman/70E_8B_800_1024_Darknet53_E75_0.7.npy', result)
 
-result = model_inference_coconp(dataset, model)
+result = np.load('CrowdHuman/70E_8B_800_1024_Darknet53_E85_0.7.npy')
 
-np.save('CrowdHuman/70E_8B_800_1024_Darknet53_E75_0.7.npy', result)
-
-coco_eval(model, dataset, logname="70E_8B_800_1024_darknet53_E75_eval",resultnp=result)
+coco_eval(None, dataset, logname="70E_8B_800_1024_darknet53_E75_eval",resultnp=result)
 
 
 

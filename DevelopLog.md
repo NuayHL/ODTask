@@ -157,3 +157,10 @@ trian的差不多之后稍微看下结果，编写一下评价代码以及了解
 
 ## 21st Jun.
 关于评价里的小目标在cocotool里面是怎么算的，这是一个问题。先去查cocodataset的网站看看
+
+## 25th Jun.
+1. 重新改写annotation文件中的area，因为评价指标是按照area的像素多少算的，但是输入的图片大小不一，这导致比例
+不一样。
+2. 把fpn改到5层去训练
+3. 把nms改成softnms，尝试编写新的loss函数
+4. anchor也许要改改？

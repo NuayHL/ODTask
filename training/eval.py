@@ -79,7 +79,7 @@ def model_inference_coconp(dataset:CocoDataset, model, config=cfg):
     return a result np.ndarray for COCOeval
     formate: imgidx x1y1wh score class
     """
-    assert model.istraining is False,'Model should be set as evaluation states'
+    assert model.training is False,'Model should be set as evaluation states'
     loader = DataLoader(dataset,shuffle=False,batch_size=config.batch_size, collate_fn=OD_default_collater)
     model.eval()
     result_list = []
@@ -180,7 +180,7 @@ def inference_single_visualization(img:str, model, config=cfg, thickness=3):
     bboxes[:, 2] *= fx
     bboxes[:, 1] *= fy
     bboxes[:, 3] *= fy
-    show_bbox(ori_img, bboxes, type='x1y1x2y2', score=scores, thickness=thickness)
+    show_bbox(ori_img, bboxes, type='x1y1x2y2', color=[255,255,255], score=scores, thickness=thickness)
 
 
 def model_save_gen(model:nn.Module, filename, last_epoch, optimizer=None, scheduler=None, path="models/model_pth"):
@@ -193,12 +193,12 @@ def model_save_gen(model:nn.Module, filename, last_epoch, optimizer=None, schedu
     torch.save(save_dict, path+"/"+filename+".pt")
 
 
-def model_load_gen(model:nn.Module, filename, optimizer=None, scheduler=None,
+def model_load_gen(filename, model:nn.Module, optimizer=None, scheduler=None,
                    path="models/model_pth", parallel_trained=False):
     """
     return model, optimizer, scheduler, last_epoch
     """
-    state_dict = torch.load(path+"/"+filename+".pt")
+    state_dict = torch.load(path+"/"+filename)
     if parallel_trained:
         model_dict = DDPsavetoNormal(state_dict["GEN"])
     else:
@@ -213,4 +213,9 @@ def model_load_gen(model:nn.Module, filename, optimizer=None, scheduler=None,
         try: scheduler.load_state_dict(state_dict["scheduler"], strict=True)
         except:
             print("Scheduler Dict not FOUND or MISMATCH!")
-    return model, optimizer, scheduler, state_dict["last_epoch"]
+
+    if "last_epoch" in state_dict.keys():
+        last_epoch = state_dict["last_epoch"]
+    else: last_epoch = 0
+
+    return model, optimizer, scheduler, last_epoch

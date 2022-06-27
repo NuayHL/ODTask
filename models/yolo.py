@@ -20,7 +20,7 @@ from torch.distributed import get_rank, is_initialized
 
 class YOLOv3(nn.Module):
     def __init__(self, numofclasses=2, loss=Defaultloss, nms=NMS(),
-                 anchors = generateAnchors(singleBatch=True), istrainig=False, backbone=None,
+                 anchors = generateAnchors(singleBatch=True), backbone=None,
                  config=cfg, **kwargs):
         super(YOLOv3, self).__init__()
         if backbone == None:
@@ -40,7 +40,6 @@ class YOLOv3(nn.Module):
             anchors = torch.from_numpy(anchors)
         self.loss = loss(device=self.device, use_focal=False)
         self._pre_anchor(anchors)
-        self.istraining = istrainig
         self.softmax = nn.Softmax(dim=1)
 
     def _pre_anchor(self, anchors):
@@ -57,7 +56,7 @@ class YOLOv3(nn.Module):
         when training, x: tuple(img(Tensor),annos)
         when inferencing, x: imgs(Tensor)
         '''
-        if not self.istraining:
+        if not self.training:
             return self.inference(x)
         else:
             input, anno = x["imgs"], x["anns"]

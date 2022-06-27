@@ -18,6 +18,8 @@ model = Fu()
 opt = optim.Adam(model.parameters(), lr=0.001)
 sch = sche.MultiStepLR(opt, [5], 0.1)
 
-print(model.state_dict())
-print(opt.state_dict())
-print(sch.state_dict())
+model.eval()
+
+
+
+print(model.training)
