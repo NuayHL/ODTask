@@ -78,6 +78,10 @@ def filterAnchors(anchors_arranged_arrays, feature_level=None, row=None, col=Non
     '''
     pass
 
+if __name__ == "__main__":
+    test = generateAnchors(singleBatch=True)
+    print(test.shape)
+
 
 
 

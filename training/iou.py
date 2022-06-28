@@ -10,7 +10,7 @@ class IOU(nn.Module):
         default using x1y1x2y2 for calculation
         '''
         super(IOU, self).__init__()
-        self.ioutype = ioutype
+        self.ioutype = ioutype.lower()
         self.dt_type = dt_type
         self.gt_type = gt_type
 
@@ -73,7 +73,32 @@ class IOU(nn.Module):
 
         return IoU
 
+    def _giou(self, a, b):
+        w_int = torch.min(torch.unsqueeze(a[:, 2], dim=1), b[:, 2]) - torch.max(torch.unsqueeze(a[:, 0], 1), b[:, 0])
+        h_int = torch.min(torch.unsqueeze(a[:, 3], dim=1), b[:, 3]) - torch.max(torch.unsqueeze(a[:, 1], 1), b[:, 1])
+        w_int = torch.clamp(w_int, min = 0)
+        h_int = torch.clamp(h_int, min = 0)
+
+        w_co = torch.max(torch.unsqueeze(a[:, 2], dim=1), b[:, 2]) - torch.min(torch.unsqueeze(a[:, 0], 1), b[:, 0])
+        h_co = torch.max(torch.unsqueeze(a[:, 3], dim=1), b[:, 3]) - torch.min(torch.unsqueeze(a[:, 1], 1), b[:, 1])
+        w_co = torch.clamp(w_co, min = 0)
+        h_co = torch.clamp(h_co, min = 0)
+        pass
+
+    def _x1y1wh_to_x1y1x2y2(self, input):
+        input[:, 2] = input[:, 0] + input[:, 2]
+        input[:, 3] = input[:, 1] + input[:, 3]
+        return input
+
+    def _xywh_to_x1y1x2y2(self,input):
+        input[:, 0] = input[:,0] - 0.5 * input[:,2]
+        input[:, 1] = input[:,1] - 0.5 * input[:,3]
+        input[:, 2] = input[:,0] + input[:,2]
+        input[:, 3] = input[:,1] + input[:,3]
+        return input
+
     def _iou(self,dt,gt):
+        '''self written, do not use'''
         dt_x1 = dt[:, 0]
         dt_y1 = dt[:, 1]
         dt_x2 = dt[:, 2]
@@ -96,21 +121,4 @@ class IOU(nn.Module):
         union = (dt_x2 - dt_x1) * (dt_y2 - dt_y1) + (gt_x2 - gt_x1) * (gt_y2 - gt_y1) - join + 1e-7
         result = join / union
         return result
-
-    def _giou(self,dt,gt):
-        pass
-
-    def _x1y1wh_to_x1y1x2y2(self, input):
-        input[:, 2] = input[:, 0] + input[:, 2]
-        input[:, 3] = input[:, 1] + input[:, 3]
-        return input
-
-    def _xywh_to_x1y1x2y2(self,input):
-        input[:, 0] = input[:,0] - 0.5 * input[:,2]
-        input[:, 1] = input[:,1] - 0.5 * input[:,3]
-        input[:, 2] = input[:,0] + input[:,2]
-        input[:, 3] = input[:,1] + input[:,3]
-        return input
-
-
 

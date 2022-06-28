@@ -42,6 +42,6 @@ class Config():
         else:
             return "cpu"
 
-yaml_file = "test.yaml"
+yaml_file = "RetinaNet_resnet101_640_896_fbox.yaml"
 cfg = Config("training/cfg/"+yaml_file)
 
