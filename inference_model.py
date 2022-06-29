@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from models.yolo import YOLOv3
-from training.eval import model_inference_coconp, model_load_gen, coco_eval
+from training.eval import model_inference_coconp, checkpoint_load, coco_eval
 from data.dataset import CocoDataset, Resizer, Normalizer
 from torchvision.transforms import Compose
 

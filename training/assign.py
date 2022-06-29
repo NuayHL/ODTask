@@ -18,7 +18,7 @@ class AnchAssign():
         self.cfg = config
         self.anchs = torch.from_numpy(anchors).double()
         self.anchs_len = anchors.shape[0]
-        self.assignType = config.assignType
+        self.assignType = config.assignType.lower()
         self.iou = IOU(ioutype=config.assignIouType, gt_type='x1y1wh')
         self.threshold_iou = config.assign_threshold
 
@@ -38,11 +38,14 @@ class AnchAssign():
                 with value indicates the assignment of the anchor
         '''
         if self.assignType == "default":
+            print("warning: this assign method can not handle ignored anns")
             return self._retinaAssign(gt)
-        elif self.assignType == "ATSS":
+        elif self.assignType == "atss":
             return self._ATSS(gt)
+        elif self.assignType == "freeanchor":
+            return self._freeanchor(gt)
         else:
-            raise NotImplementedError("Unknown assignType")
+            raise NotImplementedError("Unknown assignType: %s"%self.assignType)
 
     def _retinaAssign(self,gt):
         output_size = (len(gt),self.anchs.shape[0])
@@ -72,4 +75,7 @@ class AnchAssign():
         return assign_result
 
     def _ATSS(self,gt):
+        pass
+
+    def _freeanchor(self,gt):
         pass

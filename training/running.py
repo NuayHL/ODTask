@@ -4,7 +4,7 @@ from torch.utils.data import DataLoader
 from .config import cfg
 from util.mylogger import mylogger
 from util.primary import cfgtoStr
-from training.eval import coco_eval, model_save_gen, model_load_gen
+from training.eval import coco_eval, checkpoint_save, checkpoint_load
 import torch.optim as optim
 import torch.optim.lr_scheduler as sche
 from torch.distributed import is_initialized, get_rank
@@ -55,8 +55,8 @@ def training(model:nn.Module, loader:DataLoader, optimizer=None, scheduler='step
 
     # if load from checking points
     if checkpth is not None:
-        model, optimizer, scheduler, starting_epoch = model_load_gen(checkpth, starting_epoch,
-                                                                     model, optimizer, scheduler)
+        model, optimizer, scheduler, starting_epoch = checkpoint_load(checkpth, starting_epoch,
+                                                                      model, optimizer, scheduler)
 
     # handle check point problem
     if ending_epoch is None:
@@ -112,7 +112,7 @@ def training(model:nn.Module, loader:DataLoader, optimizer=None, scheduler='step
             continue
 
         if rank == 0 or not is_initialized():
-            model_save_gen(model, current_state, last_epoch=i+1, optimizer=optimizer, scheduler=scheduler)
+            checkpoint_save(model, current_state, last_epoch=i + 1, optimizer=optimizer, scheduler=scheduler)
             if valdataset != None:
                 logger.warning("Begin Evaluating...")
                 model.eval()

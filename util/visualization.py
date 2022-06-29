@@ -84,6 +84,11 @@ def assign_visualization(img, anns, annsidx=None, anchors=generateAnchors(single
     img = _add_bbox_img(img, [anns[annsidx,:]], type=anntype, color=[255,0,0], thickness=3, lineType=8)
     printImg(img)
 
+def assign_hot_map(img, gt, anchors, assignments):
+    plain = np.zeros(())
+    fin_img = None
+    return fin_img
+
 def _add_bbox_img(img, bboxs=[], type="xywh",color=[0,0,255], score=None, **kwargs):
     '''
     :param img: str for file path/np.ndarray (w,h,c)

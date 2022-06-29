@@ -139,11 +139,11 @@ trian的差不多之后稍微看下结果，编写一下评价代码以及了解
 
 不着急不着急。
 
-## 7nd Jun.
+### 7nd Jun.
 其实使用DDP的时候一直还是有问题的，1卡的显存会被0卡的进程占用2g到3g。不知道是为什么
 
 *17nd 补充* 在程序的其他地方is_initialized()是False,所以不会传入对应的GPU，原因未知。已经通过传递device解决 
-## 17nd Jun.
+### 17nd Jun.
 第一阶段结束了。
 根据FCOS的数据，目前的模型在CrowdHuman val中的表现仅超过了yolov2。
 
@@ -155,12 +155,22 @@ trian的差不多之后稍微看下结果，编写一下评价代码以及了解
 3. 增加不同的数据集，需要创建不同的读取方式
 4. 在训练的时候做一些可视化，并随着训练进行，增加测试的环节，并且记录到log里面。
 
-## 21st Jun.
+### 21st Jun.
 关于评价里的小目标在cocotool里面是怎么算的，这是一个问题。先去查cocodataset的网站看看
 
-## 25th Jun.
+### 25th Jun.
 1. 重新改写annotation文件中的area，因为评价指标是按照area的像素多少算的，但是输入的图片大小不一，这导致比例
 不一样。
 2. 把fpn改到5层去训练
 3. 把nms改成softnms，尝试编写新的loss函数
 4. anchor也许要改改？
+
+### 29th Jun.
+要改的东西还挺多的。
+
+1. 修改dataset，加入ignore的功能
+2. 进而修改assignment，在训练的时候不对ignore区域赋负样本。
+3. 采用新的assignment的方法，例如ota，free anchor
+4. 进而编写loss，在retinanet的基础上对crowdhuman进行训练。
+5. 最后一步，挑选nms进行最后的组合，例如Adaptive NMS
+

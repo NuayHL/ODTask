@@ -30,7 +30,7 @@ def odgt2coco(filepath, outputname, type):
         "id": int,
         "image_id": int,
         "category_id": int,
-        "bbox": [x,y,width,height] (fbox),
+        "bbox": [x1,y1,width,height] (fbox),
         "vbox": (vbox)
         "hbox": (hbox)
         "area": area of bbox
@@ -62,11 +62,17 @@ def odgt2coco(filepath, outputname, type):
             img_info = {"id":id, "width":w, "height":h, "file_name":img["ID"]}
             images.append(img_info)
             for bbox in img["gtboxes"]:
-                if bbox["tag"] == "mask": continue
-                if "ignore" in bbox["extra"].keys() and bbox["extra"]["ignore"] == 1: continue
+                # find the ignore area
+                if bbox["tag"] == "mask": categories_id = 0
+                else: categories_id = 1
+                if "ignore" in bbox["extra"].keys() and bbox["extra"]["ignore"] == 1: categories_id = 0
+
+                # if it is val_dataset, then do not add to eval
+                if categories_id == 0 and type == "val": continue
+
                 bbox_id += 1
                 area = bbox['fbox'][2] * bbox['fbox'][3] #fbox area
-                bbox_info={"id":bbox_id,"image_id":id,"category_id":1,
+                bbox_info={"id":bbox_id,"image_id":id,"category_id": categories_id,
                            "bbox":bbox["fbox"],"vbox":bbox["vbox"],"hbox":bbox["hbox"],
                            "area":area, "iscrowd":0}
                 if "ignore" in bbox["head_attr"].keys() and bbox["head_attr"]["ignore"] == 1: del bbox_info["hbox"]

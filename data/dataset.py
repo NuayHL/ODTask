@@ -62,7 +62,7 @@ class CocoDataset(Dataset):
         Always right: id = self.image_id[idx] (adopted)
     '''
     def __init__(self, annotationPath, imgFilePath, bbox_type=None,
-                 transform=transforms.Compose([Normalizer(), Resizer()])):
+                 transform=transforms.Compose([Normalizer(), Resizer()]), ignore_input=False):
         super(CocoDataset, self).__init__()
         self.jsonPath = annotationPath
         self.imgPath = imgFilePath + "/"
@@ -73,6 +73,7 @@ class CocoDataset(Dataset):
         else:
             self.bbox_type = bbox_type
         self.transform = transform
+        self.ignore_input = ignore_input
 
     def __len__(self):
         return len(self.annotations.imgs)
@@ -81,7 +82,7 @@ class CocoDataset(Dataset):
         '''
         base output:
             sample['img'] = whc np.int32? img
-            sample['anns] = n4 np.int32 img
+            sample['anns] = n x (x1 y1 w h c) np.int32 img
         '''
         img = self.annotations.loadImgs(self.image_id[idx])
 
@@ -92,9 +93,11 @@ class CocoDataset(Dataset):
         anns = deepcopy(self.annotations.loadAnns(anns))
         finanns = []
         for ann in anns:
+            category_id = ann["category_id"]
             if self.bbox_type not in ann.keys(): continue
-            # append 1: add category
-            ann[self.bbox_type].append(1)
+            if not self.ignore_input and category_id == 0: continue
+            # append category
+            ann[self.bbox_type].append(category_id)
             finanns.append(ann[self.bbox_type])
         finanns = np.array(finanns).astype(np.int32)
         sample = {"img":img, "anns":finanns}

@@ -123,7 +123,7 @@ def model_eval_loss(model, pthfilename, dataset, batchsize=4, device=cfg.pre_dev
     Please do not use this, it is meaning less.
     '''
     loader = DataLoader(dataset, batch_size=batchsize, collate_fn=OD_default_collater)
-    model = model_load_gen(model, filename=pthfilename, parallel_trained=pararllel_trained)
+    model = checkpoint_load(model, filename=pthfilename, parallel_trained=pararllel_trained)
     model = model.to(device)
 
     model.eval()
@@ -187,7 +187,7 @@ def inference_single_visualization(img:str, model, config=cfg, thickness=3):
     show_bbox(ori_img, bboxes, type='x1y1x2y2', color=[255,255,255], score=scores, thickness=thickness)
 
 
-def model_save_gen(model:nn.Module, filename, last_epoch, optimizer=None, scheduler=None, path="models/model_pth"):
+def checkpoint_save(model:nn.Module, filename, last_epoch, optimizer=None, scheduler=None, path="models/model_pth"):
     save_dict = {"GEN":model.state_dict()}
     save_dict["last_epoch"] = last_epoch
     if optimizer is not None:
@@ -196,9 +196,17 @@ def model_save_gen(model:nn.Module, filename, last_epoch, optimizer=None, schedu
         save_dict["scheduler"] = scheduler.state_dict()
     torch.save(save_dict, path+"/"+filename+".pt")
 
+def model_load(filename, model, path="models/model_pth", parallel_trained=False):
+    state_dict = torch.load(path + "/" + filename)
+    if parallel_trained:
+        model_dict = DDPsavetoNormal(state_dict["GEN"])
+    else:
+        model_dict = state_dict["GEN"]
+    model.load_state_dict(model_dict, strict=True)
+    return model
 
-def model_load_gen(filename, starting_epoch, model:nn.Module, optimizer=None, scheduler=None,
-                   path="models/model_pth", parallel_trained=False):
+def checkpoint_load(filename, starting_epoch, model:nn.Module, optimizer=None, scheduler=None,
+                    path="models/model_pth", parallel_trained=False):
     """
     return model, optimizer, scheduler, last_epoch
     """
