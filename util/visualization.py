@@ -6,6 +6,7 @@ from functools import wraps
 
 from models.anchor import generateAnchors
 from training.assign import AnchAssign
+from util.primary import progressbar
 
 def _isArrayLike(obj):
     # not working for numpy
@@ -84,10 +85,31 @@ def assign_visualization(img, anns, annsidx=None, anchors=generateAnchors(single
     img = _add_bbox_img(img, [anns[annsidx,:]], type=anntype, color=[255,0,0], thickness=3, lineType=8)
     printImg(img)
 
-def assign_hot_map(img, gt, anchors, assignments):
-    plain = np.zeros(())
-    fin_img = None
-    return fin_img
+# hot map of assigned anchors
+def assign_hot_map(anchors, assignments, img=np.zeros((1,1))*255, gt=np.array([[0,0,0,0]])):
+    heatmap = np.zeros((800,1024))
+    img = _add_bbox_img(img, bboxs=gt, type='x1y1wh')
+    lenth = len(anchors)
+    for idx,(anchor, assign) in enumerate(zip(anchors, assignments)):
+        x1 = int(anchor[0] if anchor[0] > 0 else 0)
+        x2 = int(anchor[2] if anchor[2] < 1024 else 1024)
+        y1 = int(anchor[1] if anchor[1] > 0 else 0)
+        y2 = int(anchor[3] if anchor[3] < 800 else 800)
+        if assign == -1:
+            heatmap[y1:y2, x1:x2] += 1
+        elif assign != 0:
+            heatmap[y1:y2, x1:x2] += 0
+        else:
+            heatmap[y1:y2, x1:x2] += 0
+        progressbar(float(idx+1)/lenth)
+
+    fig, ax = plt.subplots(1,2)
+    im = ax[1].imshow(heatmap)
+    cbar = ax[1].figure.colorbar(im, ax=ax)
+    ax[0].imshow(img)
+    ax[0].axis('off')
+    ax[1].axis('off')
+    plt.show()
 
 def _add_bbox_img(img, bboxs=[], type="xywh",color=[0,0,255], score=None, **kwargs):
     '''

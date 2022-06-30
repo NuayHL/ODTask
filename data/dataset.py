@@ -62,7 +62,7 @@ class CocoDataset(Dataset):
         Always right: id = self.image_id[idx] (adopted)
     '''
     def __init__(self, annotationPath, imgFilePath, bbox_type=None,
-                 transform=transforms.Compose([Normalizer(), Resizer()]), ignore_input=False):
+                 transform=transforms.Compose([Normalizer(), Resizer()]), ignored_input=False):
         super(CocoDataset, self).__init__()
         self.jsonPath = annotationPath
         self.imgPath = imgFilePath + "/"
@@ -73,7 +73,7 @@ class CocoDataset(Dataset):
         else:
             self.bbox_type = bbox_type
         self.transform = transform
-        self.ignore_input = ignore_input
+        self.ignored_input = ignored_input
 
     def __len__(self):
         return len(self.annotations.imgs)
@@ -95,7 +95,7 @@ class CocoDataset(Dataset):
         for ann in anns:
             category_id = ann["category_id"]
             if self.bbox_type not in ann.keys(): continue
-            if not self.ignore_input and category_id == 0: continue
+            if not self.ignored_input and category_id == 0: continue
             # append category
             ann[self.bbox_type].append(category_id)
             finanns.append(ann[self.bbox_type])
