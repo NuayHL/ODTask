@@ -91,16 +91,15 @@ class AnchAssign():
         real_gt = []
 
         for ib in range(len(gt)):
-            gt_i = torch.from_numpy(gt[ib]).float()
+            gt_i = torch.from_numpy(gt[ib]).double()
             if torch.cuda.is_available():
                 gt_i = gt_i.to(self.device)
-            imgAnn, classes = gt_i[:,:4], gt_i[:,4].int()
 
-            ignored = torch.eq(classes, 0)
+            ignored = torch.eq(gt_i[:, 4].int(), 0)
+            real_gt.append(gt_i[~ignored])
+            imgAnn = gt_i[:, :4]
             ignoredAnn = imgAnn[ignored]
             imgAnn = imgAnn[~ignored]
-
-            real_gt.append(imgAnn)
 
             iou_matrix = self.iou(self.anchs, imgAnn)
             iou_max_value, iou_max_idx = torch.max(iou_matrix, dim=1)
@@ -108,12 +107,12 @@ class AnchAssign():
             # negative: 0
             # ignore: -1
             # positive: index+1
-            iou_max_value = torch.where(iou_max_value >= 0.5, iou_max_idx.float() + 2.0,iou_max_value)
+            iou_max_value = torch.where(iou_max_value >= 0.5, iou_max_idx.double() + 2.0,iou_max_value)
             iou_max_value = torch.where(iou_max_value < 0.4, 1.0, iou_max_value)
             iou_max_value = torch.where(iou_max_value < 0.5, 0., iou_max_value)
 
             # Assign at least one anchor to the gt
-            iou_max_value[iou_max_idx_anns] = torch.arange(imgAnn.shape[0]).float().to(self.device) + 2
+            iou_max_value[iou_max_idx_anns] = torch.arange(imgAnn.shape[0]).double().to(self.device) + 2
             iou_max_value = iou_max_value.int()
 
             # Dealing with ignored area

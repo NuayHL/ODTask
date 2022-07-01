@@ -31,8 +31,8 @@ class RetinaNet(nn.Module):
 
     def _training(self, samples):
         imgs, annos = samples["imgs"], samples["anns"]
-        results = self.core(imgs)
-        return self.loss(results, annos)
+        cls_dt, reg_dt = self.core(imgs)
+        return self.loss(cls_dt, reg_dt, annos)
 
     def _inferencing(self, imgs):
         pass
@@ -143,7 +143,7 @@ class Retina_core(nn.Module):
 if __name__ == "__main__":
     model = Retina_core()
     model = model.cuda()
-    input = torch.rand((4, 3, 640, 896))
+    input = torch.rand((4, 3, 800, 1024))
     input = input.cuda()
     cls, reg = model(input)
     print(cls.shape, reg.shape)

@@ -280,10 +280,10 @@ class FocalLoss_IOU(nn.Module):
 
             reg_dt_assigned = reg_dt[ib , :, positive_idx_box]
 
-            dt_bbox_x = anch_x_box + reg_dt_assigned[ib, 0, :] * anch_w_box
-            dt_bbox_y = anch_y_box + reg_dt_assigned[ib, 1, :] * anch_h_box
-            dt_bbox_w = anch_w_box * torch.exp(reg_dt_assigned[ib, 2, :])
-            dt_bbox_h = anch_h_box * torch.exp(reg_dt_assigned[ib, 3, :])
+            dt_bbox_x = anch_x_box + reg_dt_assigned[0, :] * anch_w_box
+            dt_bbox_y = anch_y_box + reg_dt_assigned[1, :] * anch_h_box
+            dt_bbox_w = anch_w_box * torch.exp(reg_dt_assigned[2, :])
+            dt_bbox_h = anch_h_box * torch.exp(reg_dt_assigned[3, :])
 
             dt_bbox = torch.stack([dt_bbox_x, dt_bbox_y, dt_bbox_w, dt_bbox_h])
 

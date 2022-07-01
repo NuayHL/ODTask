@@ -144,7 +144,7 @@ class MixCocoDatset(Dataset):
     """
     Used for combining different dataset together.
     """
-    def __init__(self, datasets: [CocoDataset], transform=transforms.Compose([Normalizer(), Resizer()])):
+    def __init__(self, datasets: list[CocoDataset], transform=transforms.Compose([Normalizer(), Resizer()])):
         super(MixCocoDatset, self).__init__()
         self.cocodataset = datasets
         self.divids = [0]
