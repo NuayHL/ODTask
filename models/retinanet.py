@@ -3,12 +3,12 @@ import torch.nn as nn
 from models.resnet import resnet101
 from models.fpn import FPN
 from training.config import cfg
-from training.loss import FocalLoss
+from training.loss import FocalLoss, FocalLoss_IOU
 
 from torch.distributed import get_rank, is_initialized
 
 class RetinaNet(nn.Module):
-    def __init__(self, numofclass=1, loss=FocalLoss, config=cfg):
+    def __init__(self, numofclass=1, loss=FocalLoss_IOU, config=cfg):
         super(RetinaNet, self).__init__()
         self.config = config
         self.core = Retina_core(numofclass, config=config)

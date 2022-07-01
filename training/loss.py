@@ -167,16 +167,16 @@ class FocalLoss_IOU(nn.Module):
      "anns":List lenth B, each with np.float32 ann}
     '''
     def __init__(self, assign_method=AnchAssign, anchors=generateAnchors(singleBatch=True), use_focal=True,
-                 iou_type='diou', device=None, config = cfg):
+                 use_ignore=True, iou_type='ciou', device=None, config = cfg):
         super(FocalLoss_IOU, self).__init__()
         if isinstance(config, str):
             from .config import Config
             _cfg = Config(config)
-        self.label_assignment = assign_method(config=config, device=device)
+        self.label_assignment = assign_method(config=config, device=device, using_ignored_input=use_ignore)
         if isinstance(anchors, np.ndarray):
             anchors = torch.from_numpy(anchors)
         self.anchs = anchors
-        self.iou_type = iou_type
+        self.iouloss = IOUloss(iou_type= iou_type, reduction='sum')
         if device is None:
             self.device = config.pre_device
         else:
@@ -186,6 +186,7 @@ class FocalLoss_IOU(nn.Module):
         self.alpha = 0.25
         self.gamma = 2.0
         self.usefocal = use_focal
+        self.useignore = use_ignore
 
     def _pre_anchor(self):
         if torch.cuda.is_available():
@@ -207,27 +208,31 @@ class FocalLoss_IOU(nn.Module):
         bbox_loss = []
         cls_loss = []
 
-        assign_result = self.label_assignment.assign(gt)
+        if self.useignore:
+            assign_result, gt = self.label_assignment.assign(gt)
+        else:
+            assign_result = self.label_assignment.assign(gt)
 
         if torch.cuda.is_available():
-            dt = dt.to(self.device)
+            cls_dt = cls_dt.to(self.device)
+            reg_dt = reg_dt.to(self.device)
 
-        dt_class_md = torch.clamp(dt[:, 4:, :], 1e-4, 1.0 - 1e-4).clone()
-
-        for ib in range(dt.shape[0]):
-
+        # positive: exclude ignored sample
+        # assigned: positive sample
+        for ib in range(self.batch_size):
             positive_idx_cls = torch.ge(assign_result[ib], -0.1)
             # the not ignored ones
             positive_idx_box = torch.ge(assign_result[ib] - 1.0, -0.1)
             # the assigned ones
 
             imgAnn = gt[ib]
-            imgAnn = torch.from_numpy(imgAnn).float()
-            if torch.cuda.is_available():
-                imgAnn = imgAnn.to(self.device)
+            if not self.useignore:
+                imgAnn = torch.from_numpy(imgAnn).float()
+                if torch.cuda.is_available():
+                    imgAnn = imgAnn.to(self.device)
 
             assign_result_box = assign_result[ib][positive_idx_box].long()-1
-            assigned_anns = imgAnn[assign_result_box]
+            target_anns = imgAnn[assign_result_box]
 
             # cls loss
             assign_result_cal = torch.clamp(assign_result[ib][positive_idx_cls], 0., 1.)
@@ -235,31 +240,31 @@ class FocalLoss_IOU(nn.Module):
             if torch.cuda.is_available():
                 one_hot_bed = one_hot_bed.to(self.device)
 
-            one_hot_bed[positive_idx_box, assigned_anns[:, 4].long() - 1] = 1
+            one_hot_bed[positive_idx_box, target_anns[:, 4].long() - 1] = 1
 
             ## using 'from torch.nn.functional import one_hot'
-            # one_hot_bed[positive_idx_box] = one_hot(assigned_anns[:, 4].long() - 1,
+            # one_hot_bed[positive_idx_box] = one_hot(target_anns[:, 4].long() - 1,
             #                                         num_classes=self.classes)
 
             assign_result_cal = torch.cat((torch.unsqueeze(assign_result_cal, dim=1),
                                           one_hot_bed[positive_idx_cls]), dim=1)
 
-            dt_cls = dt_class_md[ib, :, positive_idx_cls].t()
+            cls_dt_cal = cls_dt[ib, :, positive_idx_cls].t()
 
             ## gei wo zheng wu yu le: mistake loss
-            # cls_loss_ib = -dt_cls * torch.log(assign_result_cal) + \
-            #               (dt_cls - 1.0) * torch.log(1.0 - assign_result_cal)
-            cls_loss_ib = - assign_result_cal * torch.log(dt_cls) + \
-                           (assign_result_cal - 1.0) * torch.log(1.0 - dt_cls)
+            # cls_loss_ib = -cls_dt_cal * torch.log(assign_result_cal) + \
+            #               (cls_dt_cal - 1.0) * torch.log(1.0 - assign_result_cal)
+            cls_loss_ib = - assign_result_cal * torch.log(cls_dt_cal) + \
+                           (assign_result_cal - 1.0) * torch.log(1.0 - cls_dt_cal)
 
             if self.usefocal:
                 if torch.cuda.is_available():
-                    alpha = torch.ones(dt_cls.shape).to(self.device) * self.alpha
+                    alpha = torch.ones(cls_dt_cal.shape).to(self.device) * self.alpha
                 else:
-                    alpha = torch.ones(dt_cls.shape) * self.alpha
+                    alpha = torch.ones(cls_dt_cal.shape) * self.alpha
 
                 alpha = torch.where(torch.eq(assign_result_cal, 1.), alpha, 1. - alpha)
-                focal_weight = torch.where(torch.eq(assign_result_cal, 1.), 1 - dt_cls, dt_cls)
+                focal_weight = torch.where(torch.eq(assign_result_cal, 1.), 1 - cls_dt_cal, cls_dt_cal)
                 focal_weight = alpha * torch.pow(focal_weight, self.gamma)
                 cls_fcloss_ib = focal_weight * cls_loss_ib
             else:
@@ -273,30 +278,21 @@ class FocalLoss_IOU(nn.Module):
             anch_x_box = self.anch_x[positive_idx_box]
             anch_y_box = self.anch_y[positive_idx_box]
 
-            ann_w = assigned_anns[:, 2]
-            ann_h = assigned_anns[:, 3]
-            ann_x = assigned_anns[:, 0] + ann_w * 0.5
-            ann_y = assigned_anns[:, 1] + ann_h * 0.5
+            reg_dt_assigned = reg_dt[ib , :, positive_idx_box]
 
-            target_w = torch.log(ann_w / anch_w_box)
-            target_h = torch.log(ann_h / anch_h_box)
-            target_x = (ann_x - anch_x_box) / anch_w_box
-            target_y = (ann_y - anch_y_box) / anch_h_box
+            dt_bbox_x = anch_x_box + reg_dt_assigned[ib, 0, :] * anch_w_box
+            dt_bbox_y = anch_y_box + reg_dt_assigned[ib, 1, :] * anch_h_box
+            dt_bbox_w = anch_w_box * torch.exp(reg_dt_assigned[ib, 2, :])
+            dt_bbox_h = anch_h_box * torch.exp(reg_dt_assigned[ib, 3, :])
 
-            targets = torch.stack((target_x, target_y, target_w, target_h))
+            dt_bbox = torch.stack([dt_bbox_x, dt_bbox_y, dt_bbox_w, dt_bbox_h])
 
-            box_loss_ib = torch.abs(targets - dt[ib, 0:4, positive_idx_box])
+            target_anns[:, 0] += 0.5 * target_anns[:, 2]
+            target_anns[:, 1] += 0.5 * target_anns[:, 3]
 
-            # smooth l1 loss
-            box_regression_loss_ib = torch.where(
-                torch.le(box_loss_ib, 1.0 / 9.0),
-                0.5 * 9.0 * torch.pow(box_loss_ib, 2),
-                box_loss_ib - 0.5 / 9.0)
+            box_regression_loss_ib = self.iouloss(dt_bbox, target_anns.t())
 
-            ## l2 loss
-            #box_regression_loss_ib = torch.pow(box_loss_ib, 2)
-
-            bbox_loss.append(box_regression_loss_ib.sum() / positive_idx_box.sum())
+            bbox_loss.append(box_regression_loss_ib / positive_idx_box.sum())
 
         bbox_loss = torch.stack(bbox_loss)
         cls_loss = torch.stack(cls_loss)
@@ -389,6 +385,14 @@ class IOUloss:
         elif self.reduction == 'mean':
             loss = loss.mean()
         return loss
+
+class BCEloss():
+    def __init__(self, numofclass):
+        self.numofclass = numofclass
+
+    def __call__(self, cls_dt, cls_gt, assign_result):
+        target_gt = cls_gt[assign_result]
+        return 0
 
 if __name__ == "__main__":
     box1 = torch.ones((4,10))*2
