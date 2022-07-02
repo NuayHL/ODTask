@@ -109,6 +109,7 @@ class ClassificationModule(nn.Module):
         out = self.act4(out)
 
         out = self.output(out)
+        debug = out.sum()
         out = self.output_act(out)
         out = torch.flatten(out, start_dim=2)
         out_split = torch.split(out, int(out.shape[1]/self.num_anchors), dim=1)

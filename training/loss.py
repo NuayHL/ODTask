@@ -66,7 +66,7 @@ class FocalLoss(nn.Module):
         if torch.cuda.is_available():
             dt = dt.to(self.device)
 
-        dt_class_md = torch.clamp(dt[:, 4:, :], 1e-4, 1.0 - 1e-4).clone()
+        dt_class_md = torch.clamp(dt[:, 4:, :], 1e-7, 1.0 - 1e-7).clone()
 
         for ib in range(dt.shape[0]):
 
@@ -213,6 +213,8 @@ class FocalLoss_IOU(nn.Module):
         else:
             assign_result = self.label_assignment.assign(gt)
 
+        cls_dt = torch.clamp(cls_dt, 1e-7, 1.0 - 1e-7)
+
         if torch.cuda.is_available():
             cls_dt = cls_dt.to(self.device)
             reg_dt = reg_dt.to(self.device)
@@ -242,18 +244,9 @@ class FocalLoss_IOU(nn.Module):
 
             one_hot_bed[positive_idx_box, target_anns[:, 4].long() - 1] = 1
 
-            ## using 'from torch.nn.functional import one_hot'
-            # one_hot_bed[positive_idx_box] = one_hot(target_anns[:, 4].long() - 1,
-            #                                         num_classes=self.classes)
-
-            assign_result_cal = torch.cat((torch.unsqueeze(assign_result_cal, dim=1),
-                                          one_hot_bed[positive_idx_cls]), dim=1)
-
+            assign_result_cal = one_hot_bed[positive_idx_cls]
             cls_dt_cal = cls_dt[ib, :, positive_idx_cls].t()
 
-            ## gei wo zheng wu yu le: mistake loss
-            # cls_loss_ib = -cls_dt_cal * torch.log(assign_result_cal) + \
-            #               (cls_dt_cal - 1.0) * torch.log(1.0 - assign_result_cal)
             cls_loss_ib = - assign_result_cal * torch.log(cls_dt_cal) + \
                            (assign_result_cal - 1.0) * torch.log(1.0 - cls_dt_cal)
 
@@ -282,8 +275,10 @@ class FocalLoss_IOU(nn.Module):
 
             dt_bbox_x = anch_x_box + reg_dt_assigned[0, :] * anch_w_box
             dt_bbox_y = anch_y_box + reg_dt_assigned[1, :] * anch_h_box
-            dt_bbox_w = anch_w_box * torch.exp(reg_dt_assigned[2, :])
-            dt_bbox_h = anch_h_box * torch.exp(reg_dt_assigned[3, :])
+            # dt_bbox_w = anch_w_box * torch.exp(reg_dt_assigned[2, :])
+            # dt_bbox_h = anch_h_box * torch.exp(reg_dt_assigned[3, :])
+            dt_bbox_w = anch_h_box * reg_dt_assigned[2, :]
+            dt_bbox_h = anch_h_box * reg_dt_assigned[3, :]
 
             dt_bbox = torch.stack([dt_bbox_x, dt_bbox_y, dt_bbox_w, dt_bbox_h])
 
