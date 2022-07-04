@@ -91,6 +91,8 @@ def training(model:nn.Module, loader:DataLoader, optimizer=None, scheduler='step
                         for sann in ann:
                             print(sann, file = f)
                         print("\n",file = f)
+                optimizer.zero_grad()
+                optimizer.step()
                 continue
 
             loss.backward()

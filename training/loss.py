@@ -167,7 +167,7 @@ class FocalLoss_IOU(nn.Module):
      "anns":List lenth B, each with np.float32 ann}
     '''
     def __init__(self, assign_method=AnchAssign, anchors=generateAnchors(singleBatch=True), use_focal=True,
-                 use_ignore=True, iou_type='ciou', device=None, config = cfg):
+                 use_ignore=True, iou_type='siou', device=None, config = cfg):
         super(FocalLoss_IOU, self).__init__()
         if isinstance(config, str):
             from .config import Config
@@ -279,10 +279,9 @@ class FocalLoss_IOU(nn.Module):
 
             dt_bbox_x = anch_x_box + reg_dt_assigned[0, :] * anch_w_box
             dt_bbox_y = anch_y_box + reg_dt_assigned[1, :] * anch_h_box
-            # dt_bbox_w = anch_w_box * torch.exp(reg_dt_assigned[2, :])
-            # dt_bbox_h = anch_h_box * torch.exp(reg_dt_assigned[3, :])
-            dt_bbox_w = anch_h_box * reg_dt_assigned[2, :]
-            dt_bbox_h = anch_h_box * reg_dt_assigned[3, :]
+            reg_dt_assigned_wh = torch.clamp(reg_dt_assigned[2:, :], max=50).clone()
+            dt_bbox_w = anch_w_box * torch.exp(reg_dt_assigned_wh[0, :])
+            dt_bbox_h = anch_h_box * torch.exp(reg_dt_assigned_wh[1, :])
 
             dt_bbox = torch.stack([dt_bbox_x, dt_bbox_y, dt_bbox_w, dt_bbox_h])
 
@@ -291,7 +290,7 @@ class FocalLoss_IOU(nn.Module):
 
             box_regression_loss_ib = self.iouloss(dt_bbox, target_anns.t())
 
-            bbox_loss.append(box_regression_loss_ib / positive_idx_box.sum())
+            bbox_loss.append(box_regression_loss_ib/ positive_idx_box.sum())
 
         bbox_loss = torch.stack(bbox_loss)
         cls_loss = torch.stack(cls_loss)
@@ -362,7 +361,7 @@ class IOUloss:
                 iou = iou - (rho2 / c2 + v * alpha)
         elif self.iou_type == 'siou':
             # SIoU Loss https://arxiv.org/pdf/2205.12740.pdf
-            s_cw = (b2_x1 + b2_x2 - b1_x1 - b1_x2) * 0.5
+            s_cw = (b2_x1 + b2_x2 - b1_x1 - b1_x2) * 0.5 + self.eps
             s_ch = (b2_y1 + b2_y2 - b1_y1 - b1_y2) * 0.5
             sigma = torch.pow(s_cw ** 2 + s_ch ** 2, 0.5)
             sin_alpha_1 = torch.abs(s_cw) / sigma
@@ -373,7 +372,9 @@ class IOUloss:
             rho_x = (s_cw / cw) ** 2
             rho_y = (s_ch / ch) ** 2
             gamma = angle_cost - 2
-            distance_cost = 2 - torch.exp(gamma * rho_x) - torch.exp(gamma * rho_y)
+            rho_x_g = torch.clamp(gamma * rho_x, max = 50)
+            rho_y_g = torch.clamp(gamma * rho_y, max = 50)
+            distance_cost = 2 - torch.exp(rho_x_g) - torch.exp(rho_y_g)
             omiga_w = torch.abs(w1 - w2) / torch.max(w1, w2)
             omiga_h = torch.abs(h1 - h2) / torch.max(h1, h2)
             shape_cost = torch.pow(1 - torch.exp(-1 * omiga_w), 4) + torch.pow(1 - torch.exp(-1 * omiga_h), 4)
