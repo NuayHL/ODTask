@@ -226,6 +226,7 @@ class FocalLoss_IOU(nn.Module):
             # the not ignored ones
             positive_idx_box = torch.ge(assign_result[ib] - 1.0, -0.1)
             # the assigned ones
+            debug_sum_po = positive_idx_box.sum()
 
             imgAnn = gt[ib]
             if not self.useignore:
@@ -237,7 +238,6 @@ class FocalLoss_IOU(nn.Module):
             target_anns = imgAnn[assign_result_box]
 
             # cls loss
-            assign_result_cal = torch.clamp(assign_result[ib][positive_idx_cls], 0., 1.)
             one_hot_bed = torch.zeros((assign_result.shape[1], self.classes), dtype=torch.int64)
             if torch.cuda.is_available():
                 one_hot_bed = one_hot_bed.to(self.device)
@@ -245,10 +245,13 @@ class FocalLoss_IOU(nn.Module):
             one_hot_bed[positive_idx_box, target_anns[:, 4].long() - 1] = 1
 
             assign_result_cal = one_hot_bed[positive_idx_cls]
+            debug_sum_ = assign_result_cal.sum()
             cls_dt_cal = cls_dt[ib, :, positive_idx_cls].t()
 
             cls_loss_ib = - assign_result_cal * torch.log(cls_dt_cal) + \
                            (assign_result_cal - 1.0) * torch.log(1.0 - cls_dt_cal)
+
+            debug_sum_ib = cls_loss_ib.sum()
 
             if self.usefocal:
                 if torch.cuda.is_available():
@@ -259,6 +262,7 @@ class FocalLoss_IOU(nn.Module):
                 alpha = torch.where(torch.eq(assign_result_cal, 1.), alpha, 1. - alpha)
                 focal_weight = torch.where(torch.eq(assign_result_cal, 1.), 1 - cls_dt_cal, cls_dt_cal)
                 focal_weight = alpha * torch.pow(focal_weight, self.gamma)
+                debug_sum_fo = focal_weight.sum()
                 cls_fcloss_ib = focal_weight * cls_loss_ib
             else:
                 cls_fcloss_ib = cls_loss_ib
@@ -293,6 +297,7 @@ class FocalLoss_IOU(nn.Module):
         cls_loss = torch.stack(cls_loss)
         bbox_loss = bbox_loss.sum()
         cls_loss = cls_loss.sum()
+        print('cls loss:%.4f'%cls_loss, 'bbox loss:%.4f'%bbox_loss)
         loss = torch.add(bbox_loss,cls_loss)
         return loss/self.batch_size
 

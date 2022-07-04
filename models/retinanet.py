@@ -1,17 +1,25 @@
 import torch
 import torch.nn as nn
+import numpy as np
 from models.resnet import resnet101
 from models.fpn import FPN
+from models.anchor import generateAnchors
+from models.nms import NMS
+from models.initialize import weight_init
 from training.config import cfg
 from training.loss import FocalLoss, FocalLoss_IOU
-
 from torch.distributed import get_rank, is_initialized
+from data.dataset import load_single_inferencing_img
+from training.eval import Results
 
 class RetinaNet(nn.Module):
-    def __init__(self, numofclass=1, loss=FocalLoss_IOU, config=cfg):
+    def __init__(self, numofclass=1, loss=FocalLoss_IOU, anchors = generateAnchors(singleBatch=True),
+                 nms=NMS(), config=cfg):
         super(RetinaNet, self).__init__()
         self.config = config
         self.core = Retina_core(numofclass, config=config)
+        # initialize weight
+        self.core.apply(weight_init)
         self.anchors_per_grid = len(self.config.anchorRatio) * len(self.config.anchorScales)
 
         if is_initialized():
@@ -21,7 +29,12 @@ class RetinaNet(nn.Module):
             print("Using SingleGPU")
             self.device = config.pre_device
 
-        self.loss = loss(device=self.device, use_focal=True)
+        self.loss = loss(device=self.device, use_focal=False)
+        if isinstance(anchors, np.ndarray):
+            anchors = torch.from_numpy(anchors)
+        self._pre_anchor(anchors)
+        self.softmax = nn.Softmax(dim=1)
+        self.nms = nms
 
     def forward(self, input):
         if self.training:
@@ -35,7 +48,45 @@ class RetinaNet(nn.Module):
         return self.loss(cls_dt, reg_dt, annos)
 
     def _inferencing(self, imgs):
-        pass
+        imgs = load_single_inferencing_img(imgs, device=self.device)
+        cls_dt, reg_dt = self.core(imgs)
+        cls_dt, reg_dt = cls_dt.detach(), reg_dt.detach()
+        anchors = torch.tile(self.anchors, (reg_dt.shape[0], 1, 1))
+        reg_dt[:, 2:4, :] = anchors[:, 2:, :] * reg_dt[:, 2:4, :]
+        reg_dt[:, :2, :] = anchors[:, :2, :] + reg_dt[:, :2, :] * anchors[:, :2, :]
+        result_list = []
+        for ib in range(cls_dt.shape[0]):
+            # delete background
+            max_value, max_index = torch.max(cls_dt[ib], dim=0)
+            posi_ib_idx = torch.ge(max_value, self.config.background_threshold)
+            reg_dt_ib = reg_dt[ib, :, posi_ib_idx].t()
+            cls_dt_ib_score = torch.unsqueeze(max_value[posi_ib_idx],dim=1)
+            cls_dt_ib_cls = torch.unsqueeze(max_index[posi_ib_idx],dim=1)
+            if reg_dt_ib.shape[0] == 0:
+                real_result = None
+            else:
+                self._xywh_to_x1y1x2y2(reg_dt_ib)
+                result_ib = torch.cat([reg_dt_ib, cls_dt_ib_score, cls_dt_ib_cls], dim=1)
+                fin_list = self.nms(result_ib, self.config.nms_threshold)
+                real_result = Results(result_ib[fin_list].detach().cpu())
+            result_list.append(real_result)
+        return result_list
+
+    def _xywh_to_x1y1x2y2(self, input):
+        input[:, 0] = input[:, 0] - 0.5 * input[:, 2]
+        input[:, 1] = input[:, 1] - 0.5 * input[:, 3]
+        input[:, 2] = input[:, 0] + input[:, 2]
+        input[:, 3] = input[:, 1] + input[:, 3]
+        return input
+
+    def _pre_anchor(self, anchors):
+        if torch.cuda.is_available():
+            anchors = anchors.to(self.device)
+        anchors[:, 2] = anchors[:, 2] - anchors[:, 0]
+        anchors[:, 3] = anchors[:, 3] - anchors[:, 1]
+        anchors[:, 0] = anchors[:, 0] + 0.5 * anchors[:, 2]
+        anchors[:, 1] = anchors[:, 1] + 0.5 * anchors[:, 3]
+        self.anchors = anchors.t()
 
 class RegressionModule(nn.Module):
     def __init__(self, in_channels, num_anchors=4, out_channels=256):
@@ -109,8 +160,7 @@ class ClassificationModule(nn.Module):
         out = self.act4(out)
 
         out = self.output(out)
-        debug = out.sum()
-        out = self.output_act(out)
+        #out = self.output_act(out)
         out = torch.flatten(out, start_dim=2)
         out_split = torch.split(out, int(out.shape[1]/self.num_anchors), dim=1)
         out = torch.cat(out_split, dim=2)

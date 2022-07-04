@@ -9,6 +9,7 @@ import training.running as run
 from models.yolo import YOLOv3
 from models.retinanet import RetinaNet
 from models.resnet import resnet50
+from models.initialize import seed_init
 from training.config import cfg
 
 def train_single(config=cfg, end_epoch=cfg.trainingEpoch, pth_file=None):
@@ -31,9 +32,10 @@ def train_single(config=cfg, end_epoch=cfg.trainingEpoch, pth_file=None):
     loader = DataLoader(dataset1, batch_size=config.batch_size,
                         shuffle=True, collate_fn=OD_default_collater)
 
-    run.training(model, loader, _cfg=config, valdataset=None, logname="test",
+    run.training(model, loader, _cfg=config, valdataset=None, logname="Retinanet3nd_test",
                  starting_epoch=startepoch, ending_epoch=endepoch, checkpth=pth_file)
 
 if __name__ == "__main__":
+    seed_init()
     pth_file = "70E_8B_800_1024_darknet53_from55_E85.pt"
     train_single(cfg, pth_file=None)
