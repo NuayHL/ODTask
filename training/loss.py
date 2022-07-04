@@ -296,7 +296,7 @@ class FocalLoss_IOU(nn.Module):
         cls_loss = torch.stack(cls_loss)
         bbox_loss = bbox_loss.sum()
         cls_loss = cls_loss.sum()
-        print('cls loss:%.4f'%cls_loss, 'bbox loss:%.4f'%bbox_loss)
+        print('cls loss:%.8f'%cls_loss, 'bbox loss:%.4f'%bbox_loss)
         loss = torch.add(bbox_loss,cls_loss)
         return loss/self.batch_size
 

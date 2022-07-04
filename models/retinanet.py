@@ -29,7 +29,7 @@ class RetinaNet(nn.Module):
             print("Using SingleGPU")
             self.device = config.pre_device
 
-        self.loss = loss(device=self.device, use_focal=True)
+        self.loss = loss(device=self.device, use_focal=False)
         if isinstance(anchors, np.ndarray):
             anchors = torch.from_numpy(anchors)
         self._pre_anchor(anchors)
@@ -160,7 +160,7 @@ class ClassificationModule(nn.Module):
         out = self.act4(out)
 
         out = self.output(out)
-        out = self.output_act(out)
+        #out = self.output_act(out)
         out = torch.flatten(out, start_dim=2)
         out_split = torch.split(out, int(out.shape[1]/self.num_anchors), dim=1)
         out = torch.cat(out_split, dim=2)
