@@ -11,7 +11,7 @@ from util.visualization import show_bbox
 from copy import deepcopy
 from data.dataset import CocoDataset, OD_default_collater
 from training.config import cfg
-from util.primary import progressbar, DDPsavetoNormal
+from util.primary import progressbar, DDPsavetoNormal, tensorInDict2Cuda
 from time import time
 
 class Results():
@@ -61,6 +61,8 @@ def coco_eval(model, val_dataset:CocoDataset, result_name='Default',logname='',
         np.save(result_path + result_name + '.npy', resultnp)
         print("result .npy saved")
 
+    # if empty
+    if resultnp.shape[0] == 0: return 0
     # Print the evaluation result to the log
     ori_std = sys.stdout
     with open(logpath+logname+".txt","a") as f:
@@ -197,7 +199,7 @@ def checkpoint_save(model:nn.Module, filename, last_epoch, optimizer=None, sched
     torch.save(save_dict, path+"/"+filename+".pt")
 
 def checkpoint_load(filename, starting_epoch, model:nn.Module, optimizer=None, scheduler=None,
-                    path="models/model_pth", parallel_trained=False):
+                    path="models/model_pth", parallel_trained=False, device=None):
     """
     return model, optimizer, scheduler, last_epoch
     """
@@ -208,18 +210,21 @@ def checkpoint_load(filename, starting_epoch, model:nn.Module, optimizer=None, s
         model_dict = state_dict["GEN"]
     model.load_state_dict(model_dict, strict=True)
     if optimizer is not None:
-        try: optimizer.load_state_dict(state_dict["optimizer"], strict=True)
+        try:
+            opt_dict = state_dict["optimizer"]
+            tensorInDict2Cuda(opt_dict, device)
+            optimizer.load_state_dict(opt_dict)
         except:
             print("\tOptimizer Dict not FOUND or MISMATCH!")
 
     if scheduler is not None:
-        try: scheduler.load_state_dict(state_dict["scheduler"], strict=True)
+        try: scheduler.load_state_dict(state_dict["scheduler"])
         except:
             print("\tScheduler Dict not FOUND or MISMATCH!")
 
     if "last_epoch" in state_dict.keys():
         last_epoch = state_dict["last_epoch"]
-        print("\tUsing checkpoint file epoch step!")
+        print("\tUsing checkpoint file epoch step")
     else:
         last_epoch = starting_epoch
         print("\tUsing input epoch step!")

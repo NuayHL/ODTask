@@ -1,4 +1,5 @@
 import torch
+import sys
 import torch.nn as nn
 from torch.utils.data import DataLoader
 from .config import cfg
@@ -66,7 +67,9 @@ def training(model:nn.Module,
     if checkpth is not None:
         print("Using checkpoing file %s" % checkpth)
         model, optimizer, scheduler, starting_epoch = checkpoint_load(checkpth, starting_epoch,
-                                                                      model, optimizer, scheduler)
+                                                                      model, optimizer, scheduler,
+                                                                      device=rank)
+
     else: print("No checkpoint file found")
 
     # handle check point problem
@@ -83,6 +86,7 @@ def training(model:nn.Module,
 
     # begin training
     lenepoch = len(loader)
+    oriout = sys.stdout
     print("================ GO =================")
     for i in range(starting_epoch, ending_epoch):
         model.train()
@@ -135,6 +139,7 @@ def training(model:nn.Module,
                             result_name=current_state, logname=name + "_eval")
                 except:
                     logger.warning("Evaluation ERROR!")
+                    sys.stdout = oriout
                     continue
                 logger.warning("Evaluating Complete!")
 

@@ -37,5 +37,5 @@ def train_single(config=cfg, end_epoch=cfg.trainingEpoch, pth_file=None):
 
 if __name__ == "__main__":
     seed_init(3490)
-    pth_file = None
+    pth_file = "120E_8B_800_1024_yolo_resnet101_1st_E5.pt"
     train_single(cfg, pth_file=pth_file)

@@ -17,9 +17,11 @@ dataset = CocoDataset("CrowdHuman/annotation_val_coco_style_1024_800.json", "Cro
 #
 # np.save('CrowdHuman/70E_8B_800_1024_Darknet53_E75_0.7.npy', result)
 
-result = np.load('CrowdHuman/70E_8B_800_1024_Darknet53_E85_0.7.npy')
+result = np.load('CrowdHuman/120E_8B_800_1024_yolo_resnet101_1st_E5.npy')
 
-coco_eval(None, dataset, logname="70E_8B_800_1024_darknet53_E75_eval",resultnp=result)
+print(result.shape)
+
+coco_eval(None, dataset, logname="debugtest",resultnp=result)
 
 
 

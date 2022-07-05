@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 from torch import nn
 from training.config import Config
+from torch import Tensor
 #小工具
 
 def progressbar(percentage, endstr='', barlenth=20):
@@ -26,6 +27,15 @@ def DDPsavetoNormal(dict):
         finkey = key[7:]
         findict[finkey] = dict[key]
     return findict
+
+def tensorInDict2Cuda(dict, device):
+    if device is None:
+        raise AssertionError("Please set the device for dict loading")
+    for key in dict:
+        if isinstance(dict[key],Tensor):
+            dict[key].to(device)
+        if isinstance(dict[key], dict):
+            tensorInDict2Cuda(dict[key], device)
 
 
 
