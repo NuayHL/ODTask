@@ -24,6 +24,9 @@ class AnchAssign():
         self.threshold_iou = config.assign_threshold
         self.using_ignored_input = using_ignored_input
 
+        if not using_ignored_input:
+            print("Warning: this assign method can not handle ignored anns")
+
         if device is None:
             self.device = config.pre_device
         else:
@@ -43,7 +46,6 @@ class AnchAssign():
             if self.using_ignored_input:
                 return self._retinaAssign_using_ignored(gt)
             else:
-                print("Warning: this assign method can not handle ignored anns")
                 return self._retinaAssign(gt)
         elif self.assignType == "atss":
             return self._ATSS(gt)

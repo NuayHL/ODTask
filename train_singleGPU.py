@@ -15,10 +15,11 @@ from training.config import cfg
 def train_single(config=cfg, end_epoch=cfg.trainingEpoch, pth_file=None):
     startepoch = 0
     endepoch = end_epoch
-    model = RetinaNet()
+    # model = RetinaNet(numofclass=1)
+    model = YOLOv3(numofclasses=1)
 
     dataset1 = CocoDataset("CrowdHuman/annotation_train_coco_style.json",
-                           "CrowdHuman/Images_train", ignored_input=True)
+                           "CrowdHuman/Images_train", ignored_input=False)
     # dataset2 = CocoDataset("WiderPerson/widerperson_all_coco_style.json",
     #                        "WiderPerson/Images",bbox_type="bbox")
     #
@@ -26,13 +27,13 @@ def train_single(config=cfg, end_epoch=cfg.trainingEpoch, pth_file=None):
     #                            transform=transforms.Compose([Normalizer(),
     #                                                      Augmenter(),
     #                                                      Resizer()]))
-    valdataset = CocoDataset("CrowdHuman/annotation_val_coco_style_1024_800.json",
-                             "CrowdHuman/Images_val",
-                             bbox_type="bbox")
+    # valdataset = CocoDataset("CrowdHuman/annotation_val_coco_style_1024_800.json",
+    #                          "CrowdHuman/Images_val",
+    #                          bbox_type="bbox")
     loader = DataLoader(dataset1, batch_size=config.batch_size,
                         shuffle=True, collate_fn=OD_default_collater)
 
-    run.training(model, loader, _cfg=config, valdataset=None, logname="Retinanet4nd_test",
+    run.training(model, loader, _cfg=config, valdataset=None, logname="yolonewloss_test",
                  starting_epoch=startepoch, ending_epoch=endepoch, checkpth=pth_file)
 
 if __name__ == "__main__":

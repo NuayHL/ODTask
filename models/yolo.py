@@ -9,7 +9,7 @@ import numpy as np
 
 from .darknet53 import Darknet53
 from .common import conv_batch
-from training.loss import FocalLoss
+from training.loss import FocalLoss_yoloInput
 from training.config import cfg
 from models.nms import NMS
 from models.anchor import generateAnchors
@@ -19,7 +19,7 @@ from training.eval import Results
 from torch.distributed import get_rank, is_initialized
 
 class YOLOv3(nn.Module):
-    def __init__(self, numofclasses=2, loss=FocalLoss, nms=NMS(),
+    def __init__(self, numofclasses=2, loss=FocalLoss_yoloInput, nms=NMS(),
                  anchors = generateAnchors(singleBatch=True), backbone=None,
                  config=cfg, **kwargs):
         super(YOLOv3, self).__init__()
@@ -38,7 +38,7 @@ class YOLOv3(nn.Module):
             self.device = config.pre_device
         if isinstance(anchors, np.ndarray):
             anchors = torch.from_numpy(anchors)
-        self.loss = loss(device=self.device, use_focal=False)
+        self.loss = loss(device=self.device, use_focal=True, use_ignore=False, iou_type=None)
         self._pre_anchor(anchors)
         self.softmax = nn.Softmax(dim=1)
 

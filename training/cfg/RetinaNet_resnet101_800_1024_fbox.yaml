@@ -5,7 +5,7 @@ input:
  height: 800
  width: 1024
  bboxtype: bbox #bbox(fbox)/hbox/vbox
- batchSize: 8
+ batchSize: 2
 
 assign_cfg:
  assignType: default #default/ATSS

@@ -7,13 +7,13 @@ from models.anchor import generateAnchors
 from models.nms import NMS
 from models.initialize import weight_init
 from training.config import cfg
-from training.loss import FocalLoss, FocalLoss_IOU
+from training.loss import FocalLoss_yoloInput, FocalLoss_splitInput
 from torch.distributed import get_rank, is_initialized
 from data.dataset import load_single_inferencing_img
 from training.eval import Results
 
 class RetinaNet(nn.Module):
-    def __init__(self, numofclass=1, loss=FocalLoss_IOU, anchors = generateAnchors(singleBatch=True),
+    def __init__(self, numofclass=1, loss=FocalLoss_splitInput, anchors = generateAnchors(singleBatch=True),
                  nms=NMS(), config=cfg):
         super(RetinaNet, self).__init__()
         self.config = config
@@ -29,7 +29,7 @@ class RetinaNet(nn.Module):
             print("Using SingleGPU")
             self.device = config.pre_device
 
-        self.loss = loss(device=self.device, use_focal=False)
+        self.loss = loss(device=self.device, use_focal=False, use_ignore=True)
         if isinstance(anchors, np.ndarray):
             anchors = torch.from_numpy(anchors)
         self._pre_anchor(anchors)
