@@ -16,7 +16,7 @@ super par:
 
 class FocalLoss_yoloInput(nn.Module):
     '''
-    reg loss: smooth l1
+    reg loss: smooth l1 or iou series
     cls loss: bce + focal
     {"imgs":List lenth B, each with np.float32 img
      "anns":List lenth B, each with np.float32 ann}
@@ -48,7 +48,7 @@ class FocalLoss_yoloInput(nn.Module):
             print("Regloss using IoUloss type: %s"%self.ioutype)
             self.iouloss = IOUloss(iou_type=self.ioutype)
         else:
-            print("Regloss using soft L1!")
+            print("Regloss using soft L1")
 
 
     def _pre_anchor(self):
@@ -89,9 +89,10 @@ class FocalLoss_yoloInput(nn.Module):
             # the assigned ones
 
             imgAnn = gt[ib]
-            imgAnn = torch.from_numpy(imgAnn).float()
-            if torch.cuda.is_available():
-                imgAnn = imgAnn.to(self.device)
+            if not self.useignore:
+                imgAnn = torch.from_numpy(imgAnn).float()
+                if torch.cuda.is_available():
+                    imgAnn = imgAnn.to(self.device)
 
             assign_result_box = assign_result[ib][positive_idx_box].long()-1
             assigned_anns = imgAnn[assign_result_box]
@@ -172,8 +173,9 @@ class FocalLoss_yoloInput(nn.Module):
         bbox_loss = torch.stack(bbox_loss)
         cls_loss = torch.stack(cls_loss)
         bbox_loss = bbox_loss.sum()
-        cls_loss = cls_loss.sum()
-        loss = torch.add(bbox_loss,cls_loss * self.beta)
+        cls_loss = cls_loss.sum() * self.beta
+        print('cls loss:%.4f' % cls_loss, 'bbox loss:%.4f' % bbox_loss)
+        loss = torch.add(bbox_loss,cls_loss )
         return loss/self.batch_size
 
 class FocalLoss_splitInput(nn.Module):

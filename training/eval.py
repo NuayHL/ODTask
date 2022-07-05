@@ -196,15 +196,6 @@ def checkpoint_save(model:nn.Module, filename, last_epoch, optimizer=None, sched
         save_dict["scheduler"] = scheduler.state_dict()
     torch.save(save_dict, path+"/"+filename+".pt")
 
-def model_load(filename, model, path="models/model_pth", parallel_trained=False):
-    state_dict = torch.load(path + "/" + filename)
-    if parallel_trained:
-        model_dict = DDPsavetoNormal(state_dict["GEN"])
-    else:
-        model_dict = state_dict["GEN"]
-    model.load_state_dict(model_dict, strict=True)
-    return model
-
 def checkpoint_load(filename, starting_epoch, model:nn.Module, optimizer=None, scheduler=None,
                     path="models/model_pth", parallel_trained=False):
     """
@@ -219,15 +210,27 @@ def checkpoint_load(filename, starting_epoch, model:nn.Module, optimizer=None, s
     if optimizer is not None:
         try: optimizer.load_state_dict(state_dict["optimizer"], strict=True)
         except:
-            print("Optimizer Dict not FOUND or MISMATCH!")
+            print("\tOptimizer Dict not FOUND or MISMATCH!")
 
     if scheduler is not None:
         try: scheduler.load_state_dict(state_dict["scheduler"], strict=True)
         except:
-            print("Scheduler Dict not FOUND or MISMATCH!")
+            print("\tScheduler Dict not FOUND or MISMATCH!")
 
     if "last_epoch" in state_dict.keys():
         last_epoch = state_dict["last_epoch"]
-    else: last_epoch = starting_epoch
+        print("\tUsing checkpoint file epoch step!")
+    else:
+        last_epoch = starting_epoch
+        print("\tUsing input epoch step!")
 
     return model, optimizer, scheduler, last_epoch
+
+def model_load(filename, model, path="models/model_pth", parallel_trained=False):
+    state_dict = torch.load(path + "/" + filename)
+    if parallel_trained:
+        model_dict = DDPsavetoNormal(state_dict["GEN"])
+    else:
+        model_dict = state_dict["GEN"]
+    model.load_state_dict(model_dict, strict=True)
+    return model

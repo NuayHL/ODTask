@@ -5,7 +5,7 @@ input:
  height: 800
  width: 1024
  bboxtype: bbox #bbox(vbox)/hbox/fbox
- batchSize: 4
+ batchSize: 8
 
 assign_cfg:
  assignType: default #default/ATSS
@@ -18,7 +18,10 @@ anchors:
  scales : [0.75,1]
 
 training:
+ iouloss: siou
  epoch : 120
+ useignored: True
+ useFocal: True
 
 inference:
  background_threshold : 0.7

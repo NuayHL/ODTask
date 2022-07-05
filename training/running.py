@@ -10,8 +10,17 @@ import torch.optim.lr_scheduler as sche
 from torch.distributed import is_initialized, get_rank
 from torch.nn.parallel import DistributedDataParallel as DDP
 
-def training(model:nn.Module, loader:DataLoader, optimizer=None, scheduler='steplr', valdataset=None,
-             logname=None, _cfg=cfg, save_per_epoch=5, starting_epoch=0,ending_epoch=None, checkpth=None, **kwargs):
+def training(model:nn.Module,
+             loader:DataLoader,
+             optimizer=None,
+             scheduler='steplr',
+             valdataset=None,
+             logname=None,
+             _cfg=cfg,
+             save_per_epoch=5,
+             starting_epoch=0,
+             ending_epoch=None,
+             checkpth=None, **kwargs):
     '''
     :param model: model for training
     :param loader: dataloader for training
@@ -32,7 +41,7 @@ def training(model:nn.Module, loader:DataLoader, optimizer=None, scheduler='step
     if scheduler is None:
         scheduler = 'steplr'
     if scheduler=='steplr':
-        scheduler = sche.MultiStepLR(optimizer, milestones=[5, 85, 95], gamma=0.1)
+        scheduler = sche.MultiStepLR(optimizer, milestones=[5, 85, 100, 115], gamma=0.2)
     # elif scheduler=='cosineRestarts':
     #     scheduler = CosineAnnealingWarmupRestarts(optimizer, first_cycle_steps=20, max_lr=0.1, min_lr=0.0001, warmup_steps=5, gamma=0.8 )
     else:
@@ -55,8 +64,10 @@ def training(model:nn.Module, loader:DataLoader, optimizer=None, scheduler='step
 
     # if load from checking points
     if checkpth is not None:
+        print("Using checkpoing file %s" % checkpth)
         model, optimizer, scheduler, starting_epoch = checkpoint_load(checkpth, starting_epoch,
                                                                       model, optimizer, scheduler)
+    else: print("No checkpoint file found")
 
     # handle check point problem
     if ending_epoch is None:
@@ -72,6 +83,7 @@ def training(model:nn.Module, loader:DataLoader, optimizer=None, scheduler='step
 
     # begin training
     lenepoch = len(loader)
+    print("================ GO =================")
     for i in range(starting_epoch, ending_epoch):
         model.train()
         if is_initialized():

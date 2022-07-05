@@ -25,7 +25,10 @@ class Config():
         self.anchorScales = self.cfg["anchors"]["scales"]
 
         #training
+        self.iouloss = self._iouloss_parse(self.cfg["training"]["iouloss"])
         self.trainingEpoch = self.cfg["training"]["epoch"]
+        self.use_ignored = self.cfg["training"]["useignored"]
+        self.use_Focal = self.cfg["training"]["useFocal"]
 
         #inference
         self.background_threshold = self.cfg["inference"]["background_threshold"]
@@ -41,7 +44,12 @@ class Config():
             return str
         else:
             return "cpu"
+    def _iouloss_parse(self,str):
+        if str in ["ciou","diou","iou","giou","siou"]:
+            return str
+        else:
+            return None
 
-yaml_file = "YOLOv3_Darknet53_800_1024_vbox.yaml"
+yaml_file = "YOLOv3_Resnet101_800_1024_fbox_siou.yaml"
 cfg = Config("training/cfg/"+yaml_file)
 

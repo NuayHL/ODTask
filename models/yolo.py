@@ -38,7 +38,8 @@ class YOLOv3(nn.Module):
             self.device = config.pre_device
         if isinstance(anchors, np.ndarray):
             anchors = torch.from_numpy(anchors)
-        self.loss = loss(device=self.device, use_focal=True, use_ignore=False, iou_type=None)
+        self.loss = loss(device=self.device, use_focal=self.config.use_Focal,
+                         use_ignore=self.config.use_ignored, iou_type=self.config.iouloss)
         self._pre_anchor(anchors)
         self.softmax = nn.Softmax(dim=1)
 
