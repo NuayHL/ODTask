@@ -1,8 +1,9 @@
 import torch
 import torch.nn as nn
 import numpy as np
-from models.resnet import resnet101
+from models.resnet import resnet101, resnet50, resnet18, resnet34
 from models.fpn import FPN
+from models.common import BasicBlock, Bottleneck
 from models.anchor import generateAnchors
 from models.nms import NMS
 from models.initialize import weight_init
@@ -177,7 +178,13 @@ class Retina_core(nn.Module):
         self.anchors = len(config.anchorRatio) * len(config.anchorScales)
         self.numofclasses = numofclasses
         self.backbone = backbone(numofclasses, yolo_use=False)
-        self.fpn = FPN([512, 1024, 2048], feature_size=neck_channels)
+        if isinstance(self.backbone.layer1[-2], Bottleneck):
+            self.fpn = FPN([512, 1024, 2048], feature_size=neck_channels)
+        elif isinstance(self.backbone.layer1[-2], BasicBlock):
+            self.fpn = FPN([128, 256, 512], feature_size=neck_channels)
+        else:
+            raise NotImplementedError("unsupport blocks")
+
         self.regression = RegressionModule(neck_channels, num_anchors=self.anchors)
         self.classification = ClassificationModule(neck_channels, numofclasses=self.numofclasses,
                                                    num_anchors = self.anchors)
@@ -192,7 +199,7 @@ class Retina_core(nn.Module):
         return cls_dt, reg_dt
 
 if __name__ == "__main__":
-    model = Retina_core()
+    model = Retina_core(backbone=resnet18)
     model = model.cuda()
     input = torch.rand((4, 3, 800, 1024))
     input = input.cuda()

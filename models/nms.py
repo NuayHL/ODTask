@@ -32,7 +32,6 @@ class NMS():
             maxone = idxs[-1]
             iou_with_rest = iou(torch.unsqueeze(input[:4, maxone], 0), input[:4, idxs[:-1]])
 
-
     def change(self):
         self.nmstype = 1
 

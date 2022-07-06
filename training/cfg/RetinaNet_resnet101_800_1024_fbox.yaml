@@ -21,6 +21,6 @@ training:
  epoch : 100
 
 inference:
- background_threshold : 0.7
+ background_threshold : 0.4
  class_threshold : 0.7
- nms_threshold : 0.6
+ nms_threshold : 0.7

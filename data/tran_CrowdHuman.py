@@ -71,8 +71,21 @@ def odgt2coco(filepath, outputname, type):
                 if categories_id == 0 and type == "val": continue
 
                 bbox_id += 1
-                area = bbox['fbox'][2] * bbox['fbox'][3] #fbox area
-                bbox_info={"id":bbox_id,"image_id":id,"category_id": categories_id,
+                # fbox area
+                area = bbox['fbox'][2] * bbox['fbox'][3]
+                # segmentation
+                segmentation = []
+                segmentation.append(bbox['vbox'][0])
+                segmentation.append(bbox['vbox'][1])
+                segmentation.append(bbox['vbox'][0] + bbox['vbox'][2])
+                segmentation.append(bbox['vbox'][1])
+                segmentation.append(bbox['vbox'][0] + bbox['vbox'][2])
+                segmentation.append(bbox['vbox'][1] + bbox['vbox'][3])
+                segmentation.append(bbox['vbox'][0])
+                segmentation.append(bbox['vbox'][1] + bbox['vbox'][3])
+                segmentation = [segmentation]
+
+                bbox_info={"id":bbox_id,"image_id":id,"category_id": categories_id, "segmentation": segmentation,
                            "bbox":bbox["fbox"],"vbox":bbox["vbox"],"hbox":bbox["hbox"],
                            "area":area, "iscrowd":0}
                 if "ignore" in bbox["head_attr"].keys() and bbox["head_attr"]["ignore"] == 1: del bbox_info["hbox"]

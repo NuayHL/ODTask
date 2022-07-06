@@ -50,6 +50,6 @@ class Config():
         else:
             return None
 
-yaml_file = "YOLOv3_Resnet101_800_1024_fbox_siou.yaml"
+yaml_file = "YOLOv3_Resnet18_608_608_fbox_siou.yaml"
 cfg = Config("training/cfg/"+yaml_file)
 

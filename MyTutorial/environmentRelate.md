@@ -4,6 +4,14 @@
 
 git clone https://oauth2: MYTOKEN @github.com/NuayHL/ODTask.git
 
+## conda
+### 添加到path
+- anaconda3 
+- anaconda3/Scripts 
+- anaconda3/Library/bin
+### 在powershell中不能激活
+- conda init powershell 然后退出重开powershell
+
 ## Pycharm
 ### Terminal 显示不正常
 - 尝试将 “C:\Windows\System32\WindowsPowerShell\v1.0\” 添加到PATH中

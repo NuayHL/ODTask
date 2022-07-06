@@ -28,9 +28,16 @@ class ResNet(nn.Module):
         self.layer4 = self._make_layer(block, 512, layers[3], stride=2)
 
         if self.yolo_use:
-            self.to_yolo_f3 = nn.Conv2d(512, 256, kernel_size=1, bias=False)
-            self.to_yolo_f4 = nn.Conv2d(1024, 512, kernel_size=1, bias=False)
-            self.to_yolo_f5 = nn.Conv2d(2048, 1024, kernel_size=1, bias=False)
+            if block == Bottleneck:
+                self.to_yolo_f3 = nn.Conv2d(512, 256, kernel_size=1, bias=False)
+                self.to_yolo_f4 = nn.Conv2d(1024, 512, kernel_size=1, bias=False)
+                self.to_yolo_f5 = nn.Conv2d(2048, 1024, kernel_size=1, bias=False)
+            elif block == BasicBlock:
+                self.to_yolo_f3 = nn.Conv2d(128, 256, kernel_size=1, bias=False)
+                self.to_yolo_f4 = nn.Conv2d(256, 512, kernel_size=1, bias=False)
+                self.to_yolo_f5 = nn.Conv2d(512, 1024, kernel_size=1, bias=False)
+            else:
+                raise NotImplementedError("unsupported block")
 
         # initialize parameters
         for m in self.modules():
@@ -94,6 +101,10 @@ class ResNet(nn.Module):
         x2 = self.layer2(x1)
         x3 = self.layer3(x2)
         x4 = self.layer4(x3)
+
+        print(x2.shape)
+        print(x3.shape)
+        print(x4.shape)
 
         return x4, x3, x2
 

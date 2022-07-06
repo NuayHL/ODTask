@@ -174,3 +174,10 @@ trian的差不多之后稍微看下结果，编写一下评价代码以及了解
 4. 进而编写loss，在retinanet的基础上对crowdhuman进行训练。
 5. 最后一步，挑选nms进行最后的组合，例如Adaptive NMS
 
+### 6th July.
+之前写的RetinaNet似乎是有些问题
+1. 看yolov6的argumentation并应用
+2. 编写softnms
+3. 尝试对ECPdataset编写cocostyle annotation
+4. 学习mmdetection做大规模的训练
+5. 学习attention的机制

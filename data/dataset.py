@@ -35,6 +35,8 @@ class Augmenter():
             anns[:, 0] = width - anns[:, 0] - anns[:, 2]
 
             sample = {'img':img, 'anns':anns}
+
+
         return sample
 
 class Resizer():

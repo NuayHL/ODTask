@@ -8,14 +8,14 @@ import training.running as run
 
 from models.yolo import YOLOv3
 from models.retinanet import RetinaNet
-from models.resnet import resnet50, resnet101
+from models.resnet import resnet50, resnet101, resnet18
 from models.initialize import seed_init
 from training.config import cfg
 
 def train_single(config=cfg, end_epoch=cfg.trainingEpoch, pth_file=None):
     startepoch = 0
     endepoch = end_epoch
-    model = YOLOv3(numofclasses=1, backbone=resnet101, pretrained=True)
+    model = YOLOv3(numofclasses=1, backbone=resnet18)
 
     dataset1 = CocoDataset("CrowdHuman/annotation_train_coco_style.json",
                            "CrowdHuman/Images_train", ignored_input=config.use_ignored)
@@ -26,16 +26,16 @@ def train_single(config=cfg, end_epoch=cfg.trainingEpoch, pth_file=None):
     #                            transform=transforms.Compose([Normalizer(),
     #                                                      Augmenter(),
     #                                                      Resizer()]))
-    valdataset = CocoDataset("CrowdHuman/annotation_val_coco_style_1024_800.json",
+    valdataset = CocoDataset("CrowdHuman/annotation_val_coco_style_608_608.json",
                              "CrowdHuman/Images_val",
                              bbox_type="bbox")
     loader = DataLoader(dataset1, batch_size=config.batch_size,
                         shuffle=True, collate_fn=OD_default_collater)
 
-    run.training(model, loader, _cfg=config, valdataset=valdataset, logname="yolo_resnet101_1st",
+    run.training(model, loader, _cfg=config, valdataset=valdataset, logname="yolo_resnet18_test",
                  starting_epoch=startepoch, ending_epoch=endepoch, checkpth=pth_file)
 
 if __name__ == "__main__":
-    seed_init(3490)
+    seed_init(1998)
     pth_file = "120E_8B_800_1024_yolo_resnet101_1st_E5.pt"
-    train_single(cfg, pth_file=pth_file)
+    train_single(cfg, pth_file=None)

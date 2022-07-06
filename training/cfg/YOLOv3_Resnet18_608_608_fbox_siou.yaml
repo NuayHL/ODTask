@@ -1,0 +1,29 @@
+device:
+ preprocess: cuda1
+
+input:
+ height: 608
+ width: 608
+ bboxtype: bbox #bbox(vbox)/hbox/fbox
+ batchSize: 8
+
+assign_cfg:
+ assignType: default #default/ATSS
+ ioutype: iou
+ threshold: 0.5
+
+anchors:
+ fpnlevels : [3,4,5]
+ ratios : [2,4]
+ scales : [0.75,1]
+
+training:
+ iouloss: siou
+ epoch : 120
+ useignored: True
+ useFocal: True
+
+inference:
+ background_threshold : 0.7
+ class_threshold : 0.7
+ nms_threshold : 0.6
