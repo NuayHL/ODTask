@@ -1,4 +1,5 @@
 import cv2
+import os
 import numpy as np
 import torch
 from pycocotools.coco import COCO
@@ -170,6 +171,42 @@ class MixCocoDatset(Dataset):
                 return self.cocodataset[i][idx-self.divids[i]]
         return self.cocodataset[-1][idx-self.divids[-1]]
 
+class Txtdatset(Dataset):
+    """
+    anns format:
+        n x 5: n x (xywh c) np.float32
+    """
+    def __init__(self, imgs_addr, imgs_label_addr, transform=None, xywhoutput=True):
+        self.imgs_addr = imgs_addr
+        self.imgs_label_addr = imgs_label_addr
+        self.imgs = os.listdir(imgs_addr)
+        self.xywhoutput = xywhoutput
+        self.transform = transform
+
+    def __getitem__(self, idx):
+        imgname = self.imgs[idx]
+        img = cv2.imread(self.imgs_addr + "/" + imgname)
+        img = img[:, :, ::-1]
+        w, h = img.shape[1], img.shape[0]
+        with open(self.imgs_label_addr+"/"+self.imgs[idx][:-4]+".txt", "r") as f:
+            bboxes = f.readlines()
+        bboxes = [bbox.split() for bbox in bboxes]
+        bboxes = [[float(num) for num in bbox] for bbox in bboxes]
+        bboxes = [bbox[1:]+[bbox[0]] for bbox in bboxes]
+        anns = np.array(bboxes, dtype=np.float32)
+        anns[:, 0] *= w
+        anns[:, 2] *= w
+        anns[:, 1] *= h
+        anns[:, 3] *= h
+        if not self.xywhoutput:
+            self._xywh_to_x1y1wh(anns)
+        sample = {"img":img, "anns":anns}
+        if self.transform:
+            sample = self.transform(sample)
+        return sample
+
+    def _xywh_to_x1y1wh(self, anns):
+        pass
 
 def OD_default_collater(data):
     '''
