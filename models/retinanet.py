@@ -14,11 +14,11 @@ from data.dataset import load_single_inferencing_img
 from training.eval import Results
 
 class RetinaNet(nn.Module):
-    def __init__(self, numofclass=1, loss=FocalLoss_splitInput, anchors = generateAnchors(singleBatch=True),
+    def __init__(self, numofclass=1, backbone=resnet50, loss=FocalLoss_splitInput, anchors = generateAnchors(singleBatch=True),
                  nms=NMS(), config=cfg):
         super(RetinaNet, self).__init__()
         self.config = config
-        self.core = Retina_core(numofclass, config=config)
+        self.core = Retina_core(numofclass, backbone=backbone, config=config)
         # initialize weight
         self.core.apply(weight_init)
         self.anchors_per_grid = len(self.config.anchorRatio) * len(self.config.anchorScales)

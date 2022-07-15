@@ -5,7 +5,7 @@ input:
  height: 608
  width: 608
  bboxtype: bbox #bbox(vbox)/hbox/fbox
- batchSize: 8
+ batchSize: 16
 
 assign_cfg:
  assignType: default #default/ATSS
@@ -19,7 +19,7 @@ anchors:
 
 training:
  iouloss: siou
- epoch : 120
+ epoch : 250
  useignored: True
  useFocal: True
 

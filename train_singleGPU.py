@@ -29,13 +29,13 @@ def train_single(config=cfg, end_epoch=cfg.trainingEpoch, pth_file=None):
     valdataset = CocoDataset("CrowdHuman/annotation_val_coco_style_608_608.json",
                              "CrowdHuman/Images_val",
                              bbox_type="bbox")
-    loader = DataLoader(dataset1, batch_size=config.batch_size,
+    loader = DataLoader(dataset1, batch_size=config.batch_size, num_workers=4,
                         shuffle=True, collate_fn=OD_default_collater)
 
-    run.training(model, loader, _cfg=config, valdataset=valdataset, logname="yolo_resnet18_test",
-                 starting_epoch=startepoch, ending_epoch=endepoch, checkpth=pth_file)
+    run.training(model, loader, _cfg=config, valdataset=valdataset, logname="yolo_resnet18_temp",
+                 starting_epoch=startepoch, ending_epoch=endepoch, checkpth=pth_file, save_per_epoch=20)
 
 if __name__ == "__main__":
-    seed_init(1998)
-    pth_file = "120E_8B_800_1024_yolo_resnet101_1st_E5.pt"
-    train_single(cfg, pth_file=None)
+    seed_init(2008)
+    pth_file = "120E_8B_608_608_yolo_resnet18_test_E50.pt"
+    train_single(cfg, pth_file=pth_file)

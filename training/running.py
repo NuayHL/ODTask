@@ -42,7 +42,7 @@ def training(model:nn.Module,
     if scheduler is None:
         scheduler = 'steplr'
     if scheduler=='steplr':
-        scheduler = sche.MultiStepLR(optimizer, milestones=[5, 85, 100, 115], gamma=0.2)
+        scheduler = sche.MultiStepLR(optimizer, milestones=[5, 200, 240], gamma=0.1)
     # elif scheduler=='cosineRestarts':
     #     scheduler = CosineAnnealingWarmupRestarts(optimizer, first_cycle_steps=20, max_lr=0.1, min_lr=0.0001, warmup_steps=5, gamma=0.8 )
     else:
@@ -66,8 +66,7 @@ def training(model:nn.Module,
     # if load from checking points
     if checkpth is not None:
         print("Using checkpoing file %s" % checkpth)
-        model, optimizer, scheduler, starting_epoch = checkpoint_load(checkpth, starting_epoch,
-                                                                      model, optimizer, scheduler,
+        model, _, _, _ = checkpoint_load(checkpth, starting_epoch, model, None, None,
                                                                       device=rank)
 
     else: print("No checkpoint file found")

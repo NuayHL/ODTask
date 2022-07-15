@@ -125,7 +125,7 @@ def model_eval_loss(model, pthfilename, dataset, batchsize=4, device=cfg.pre_dev
     Please do not use this, it is meaning less.
     '''
     loader = DataLoader(dataset, batch_size=batchsize, collate_fn=OD_default_collater)
-    model = checkpoint_load(model, filename=pthfilename, parallel_trained=pararllel_trained)
+    model = checkpoint_load(filename=pthfilename, model=model, parallel_trained=pararllel_trained)
     model = model.to(device)
 
     model.eval()

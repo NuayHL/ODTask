@@ -181,3 +181,8 @@ trian的差不多之后稍微看下结果，编写一下评价代码以及了解
 3. 尝试对ECPdataset编写cocostyle annotation
 4. 学习mmdetection做大规模的训练
 5. 学习attention的机制
+
+### 14th July.
+组会结束了，目前的想法是将这个项目重构一遍。
+
+主要的问题在于
