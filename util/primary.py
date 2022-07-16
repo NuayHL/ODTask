@@ -1,6 +1,5 @@
 import matplotlib.pyplot as plt
 from torch import nn
-from training.config import Config
 from torch import Tensor
 #小工具
 
@@ -16,7 +15,7 @@ def numofParameters(model: nn.Module ):
         nump += par.numel()
     return nump
 
-def cfgtoStr(cfg:Config):
+def cfgtoStr(cfg):
     name = str(cfg.trainingEpoch)+"E_"+str(cfg.batch_size)+"B_"+str(cfg.input_height)+ \
            "_"+str(cfg.input_width)
     return name
