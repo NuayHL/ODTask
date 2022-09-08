@@ -1,6 +1,8 @@
-写点什么好呢。。。？
+This Repo is my first excerise for reproducing YOLOv3. Basically can work.
 
-requirements:
+Please go to https://github.com/NuayHL/CrowdDetection for advanced implemention.
+
+### requirements:
 
 1. pip install -r requirments.txt
 2. pytorch
