@@ -22,3 +22,4 @@ Please go to https://github.com/NuayHL/CrowdDetection for advanced implemention.
    from dataset:
    from single image
    
+*Copyright© NuayHL 2022. All right reserved*
